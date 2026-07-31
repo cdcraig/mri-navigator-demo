@@ -295,6 +295,116 @@
   footer{border-top:1px solid var(--line);margin-top:34px;padding:20px 0 10px;font-size:12.5px;color:var(--muted);line-height:1.6}
   .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+
+  /* =====================================================================
+     SYSTEM VIEW — agent flow visualizer
+     Dark technical canvas deliberately contrasted against the warm patient
+     surface: the client should feel they have opened the lid on the product.
+     ===================================================================== */
+  :root{
+    --sys-bg:#0C1512; --sys-panel:#122019; --sys-line:#23362D; --sys-ink:#DCE9E3;
+    --sys-mut:#7A9389; --sys-tl:#43D8B4; --sys-red:#FF6F5C; --sys-amb:#F2B84B;
+  }
+  #tab-flow .sysnote{
+    font-family:var(--mono);font-size:11.5px;line-height:1.7;color:var(--muted);
+    background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-top:14px;
+  }
+  #tab-flow .sysnote b{color:var(--ink)}
+  .sysbox{
+    background:var(--sys-bg);border:1px solid #1B2B24;border-radius:var(--radius);
+    overflow:hidden;box-shadow:var(--shadow);margin-top:4px;
+  }
+  .syshead{
+    padding:14px 16px;border-bottom:1px solid var(--sys-line);
+    display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  }
+  .syshead b{color:var(--sys-ink);font-size:14px;font-family:var(--sans);letter-spacing:-.01em}
+  .syshead .st{
+    margin-left:auto;font-family:var(--mono);font-size:10.5px;letter-spacing:.05em;
+    text-transform:uppercase;padding:4px 9px;border-radius:6px;
+    border:1px solid rgba(67,216,180,.32);color:var(--sys-tl);background:rgba(67,216,180,.08);
+  }
+  .syshead .st.bad{border-color:rgba(255,111,92,.4);color:var(--sys-red);background:rgba(255,111,92,.08)}
+  .syshead .st.warn{border-color:rgba(242,184,75,.4);color:var(--sys-amb);background:rgba(242,184,75,.08)}
+  .gwrap{
+    overflow-x:auto;padding:12px 8px 6px;
+    background:radial-gradient(circle at 1px 1px, rgba(255,255,255,.05) 1px, transparent 0) 0 0/22px 22px, var(--sys-bg);
+  }
+  .gwrap svg{display:block;width:100%;min-width:820px;height:auto}
+  .scrollhint{
+    font-family:var(--mono);font-size:10px;color:var(--sys-mut);text-align:center;
+    padding:0 0 8px;letter-spacing:.04em;
+  }
+  @media(min-width:900px){ .scrollhint{display:none} }
+
+  /* nodes */
+  .fn rect.bx{fill:var(--sys-panel);stroke:var(--sys-line);stroke-width:1.4;transition:.25s}
+  .fn text{font-family:var(--mono);pointer-events:none}
+  .fn .k{font-size:8.4px;letter-spacing:.1em;fill:var(--sys-mut)}
+  .fn .t{font-size:12.2px;fill:var(--sys-ink);font-weight:600}
+  .fn .r{font-size:9.2px;fill:var(--sys-mut)}
+  .fn.dim rect.bx{opacity:.4} .fn.dim text{opacity:.45}
+  .fn.on rect.bx{stroke:var(--sys-tl);stroke-width:2;fill:#123029;filter:drop-shadow(0 0 10px rgba(67,216,180,.3))}
+  .fn.on .r{fill:var(--sys-tl)} .fn.on .k{fill:#75CFB8}
+  .fn.done rect.bx{stroke:rgba(67,216,180,.42);fill:#101F1B}
+  .fn.done .r{fill:#5FA694}
+  .fn.bad rect.bx{stroke:var(--sys-red);stroke-width:2.2;fill:#2F1613;filter:drop-shadow(0 0 12px rgba(255,111,92,.34))}
+  .fn.bad .r,.fn.bad .k{fill:var(--sys-red)}
+  .fn.warn rect.bx{stroke:var(--sys-amb);stroke-width:2;fill:#2C2413}
+  .fn.warn .r,.fn.warn .k{fill:var(--sys-amb)}
+  .gtag{font-family:var(--mono);font-size:7.4px;letter-spacing:.09em;fill:#8AA69C}
+
+  /* links */
+  .lk{fill:none;stroke:#2A4036;stroke-width:1.7;marker-end:url(#ar);transition:.25s}
+  .lk.on{stroke:var(--sys-tl);stroke-width:2.3;marker-end:url(#arOn);stroke-dasharray:7 5;animation:flow .7s linear infinite}
+  .lk.bad{stroke:var(--sys-red);stroke-width:2.3;marker-end:url(#arBad);stroke-dasharray:7 5;animation:flow .7s linear infinite}
+  .lk.done{stroke:#2E6B5C;marker-end:url(#arDone)}
+  .lk.off{opacity:.18}
+  @keyframes flow{to{stroke-dashoffset:-24}}
+  @media (prefers-reduced-motion:reduce){ .lk.on,.lk.bad{animation:none} }
+
+  /* the model boundary — the whole argument of the demo */
+  #bnd{fill:rgba(67,216,180,.035);stroke:var(--sys-tl);stroke-width:1.6;stroke-dasharray:9 7;opacity:.7;transition:.3s}
+  #bndL{font-family:var(--mono);font-size:9.6px;letter-spacing:.12em;fill:var(--sys-tl)}
+  #bndS{font-family:var(--mono);font-size:8.2px;fill:var(--sys-mut)}
+  svg.blive #bnd{fill:rgba(67,216,180,.1);opacity:1;stroke-width:2.2}
+  svg.bnever #bnd{stroke:var(--sys-red);fill:rgba(255,111,92,.05);opacity:.9}
+  svg.bnever #bndL{fill:var(--sys-red)}
+  #stamp{opacity:0;transition:.3s}
+  svg.bnever #stamp{opacity:1}
+  #stamp text{font-family:var(--mono);font-size:12.5px;letter-spacing:.15em;fill:var(--sys-red);font-weight:700}
+  #xmark{opacity:0;transition:.25s}
+  svg.xblock #xmark{opacity:1}
+  #xmark circle{fill:#2F1613;stroke:var(--sys-red);stroke-width:2}
+  #xmark path{stroke:var(--sys-red);stroke-width:2.4;stroke-linecap:round}
+  .zl{font-family:var(--mono);font-size:8.4px;letter-spacing:.13em;fill:#4C6B60}
+  .zr{stroke:#1A2A24;stroke-width:1;stroke-dasharray:3 5}
+
+  /* controls + log */
+  .sysctl{padding:13px 14px;border-top:1px solid var(--sys-line);display:flex;gap:7px;flex-wrap:wrap}
+  .sysctl .lbl{
+    width:100%;font-family:var(--mono);font-size:9.4px;letter-spacing:.11em;
+    text-transform:uppercase;color:var(--sys-mut);margin-bottom:1px;
+  }
+  .sbtn{
+    font-family:var(--mono);font-size:11.2px;padding:8px 11px;border-radius:8px;text-align:left;
+    border:1px solid var(--sys-line);color:var(--sys-ink);background:var(--sys-panel);transition:.16s;
+  }
+  .sbtn:hover{border-color:var(--sys-tl);color:var(--sys-tl)}
+  .sbtn.red{border-color:rgba(255,111,92,.32);color:#FFA093}
+  .sbtn.red:hover{border-color:var(--sys-red);color:var(--sys-red);background:#26120F}
+  .sbtn.amb{border-color:rgba(242,184,75,.3);color:#EFC77E}
+  .sbtn.amb:hover,.sbtn.amb[aria-pressed="true"]{border-color:var(--sys-amb);color:var(--sys-amb);background:#262013}
+  .syslog{
+    border-top:1px solid var(--sys-line);padding:11px 14px 14px;max-height:180px;overflow-y:auto;
+    font-family:var(--mono);font-size:11px;line-height:1.7;
+  }
+  .syslog .l{display:grid;grid-template-columns:56px 90px 1fr;gap:9px}
+  .syslog .l .tm{color:#48665B} .syslog .l .nd{color:#75CFB8} .syslog .l .tx{color:var(--sys-ink)}
+  .syslog .l.e .nd{color:var(--sys-red)} .syslog .l.e .tx{color:#FFB5AA}
+  .syslog .l.w .nd{color:var(--sys-amb)}
+  .syslog .l.m .tx{color:var(--sys-mut)}
+  @media(max-width:520px){ .syslog .l{grid-template-columns:50px 1fr;gap:6px} .syslog .l .nd{grid-column:1/-1} }
 </style>
 </head>
 <body>
@@ -404,6 +514,179 @@
 
       <footer>Both answers on this screen are rendered from one shared clinical result object. The persona layer can change wording, order and warmth — it has no access to the facts themselves, so the medical substance cannot diverge. The check above runs live in your browser every time you change the question.</footer>
     </section>
+
+    <!-- ============ HOW IT WORKS — AGENT FLOW VISUALIZER ============ -->
+    <section class="tabbody" id="tab-flow" hidden>
+      <h2 class="screen">How it works</h2>
+      <p class="sub">Every message the patient sends travels through this graph. The dashed box is the language model. <strong>Every guardrail sits outside it.</strong></p>
+
+      <div class="sysbox">
+        <div class="syshead">
+          <b>Agent flow — live trace</b>
+          <span class="st" id="fstat">idle</span>
+        </div>
+
+        <div class="gwrap">
+        <!-- ponytail: this is hand-authored inline SVG with CSS class toggles, not React Flow or
+             any graph library. It is a fixed presentation diagram — twelve nodes whose geometry
+             never changes at runtime — so a layout engine would be tens of kB of dependency to
+             position boxes whose coordinates we already know. Ceiling: the moment the client wants
+             to EDIT flows themselves (drag nodes, add branches, persist a layout) this should be
+             swapped for a real canvas library. Not before. -->
+        <svg id="fgraph" viewBox="0 0 1020 842" role="img"
+             aria-label="Agent flow diagram. Guardrail nodes sit outside a dashed language-model boundary.">
+          <defs>
+            <marker id="ar"     viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2A4036"/></marker>
+            <marker id="arOn"   viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#43D8B4"/></marker>
+            <marker id="arBad"  viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#FF6F5C"/></marker>
+            <marker id="arDone" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M0 0 L10 5 L0 10 z" fill="#2E6B5C"/></marker>
+          </defs>
+
+          <line class="zr" x1="16" y1="142" x2="1004" y2="142"/>
+          <text class="zl" x="16" y="24">A · INGEST — RUNS ONCE, WHEN THE REPORT ARRIVES</text>
+          <text class="zl" x="16" y="164">B · EVERY PATIENT MESSAGE</text>
+
+          <!-- ingest lane -->
+          <g class="fn dim" id="fn-report">
+            <rect class="bx" x="34" y="40" width="196" height="76" rx="11"/>
+            <text class="k" x="48" y="62">SOURCE OF TRUTH</text>
+            <text class="t" x="48" y="82">Signed report</text>
+            <text class="r" x="48" y="100">idle</text>
+          </g>
+          <g class="fn dim" id="fn-extract">
+            <rect class="bx" x="282" y="40" width="196" height="76" rx="11"/>
+            <text class="k" x="296" y="62">DETERMINISTIC PARSER</text>
+            <text class="t" x="296" y="82">Structured extraction</text>
+            <text class="r" x="296" y="100">idle</text>
+          </g>
+          <g class="fn dim" id="fn-risk">
+            <rect class="bx" x="530" y="40" width="216" height="76" rx="11"/>
+            <text class="k" x="544" y="62">CLINICAL RULES · NOT THE MODEL</text>
+            <text class="t" x="544" y="82">Risk ranking</text>
+            <text class="r" x="544" y="100">idle</text>
+          </g>
+          <path class="lk" id="lk-re" d="M234 78 H276"/>
+          <path class="lk" id="lk-er" d="M482 78 H524"/>
+          <path class="lk" id="lk-rs" d="M638 120 V188 H600 V298"/>
+
+          <!-- message lane -->
+          <g class="fn dim" id="fn-msg">
+            <rect class="bx" x="34" y="188" width="196" height="76" rx="11"/>
+            <text class="k" x="48" y="210">PATIENT</text>
+            <text class="t" x="48" y="230">Message received</text>
+            <text class="r" x="48" y="248">idle</text>
+          </g>
+          <g class="fn dim" id="fn-gin">
+            <rect class="bx" x="282" y="188" width="244" height="76" rx="11"/>
+            <text class="k" x="296" y="210">INPUT GUARD · DETERMINISTIC CODE</text>
+            <text class="t" x="296" y="230">Intent classifier</text>
+            <text class="r" x="296" y="248">idle</text>
+            <text class="gtag" x="296" y="182">▲ OUTSIDE THE MODEL BOUNDARY</text>
+          </g>
+          <path class="lk" id="lk-mg" d="M234 226 H276"/>
+
+          <!-- shared object -->
+          <g class="fn dim" id="fn-shared">
+            <rect class="bx" x="430" y="298" width="292" height="80" rx="11"/>
+            <text class="k" x="446" y="320">PERSONA-NEUTRAL · SINGLE SOURCE OF TRUTH</text>
+            <text class="t" x="446" y="340">Shared clinical result object</text>
+            <text class="r" x="446" y="360">idle</text>
+          </g>
+          <path class="lk" id="lk-gs" d="M478 268 V298"/>
+          <g id="xmark"><circle cx="478" cy="285" r="13"/><path d="M472 279 L484 291 M484 279 L472 291"/></g>
+
+          <!-- escalation -->
+          <g class="fn dim" id="fn-esc">
+            <rect class="bx" x="34" y="302" width="272" height="84" rx="11"/>
+            <text class="k" x="48" y="324">ESCALATION ROUTER</text>
+            <text class="t" x="48" y="344">→ Human clinician</text>
+            <text class="r" x="48" y="364">idle</text>
+            <text class="gtag" x="48" y="296">▲ OUTSIDE THE MODEL BOUNDARY</text>
+          </g>
+          <path class="lk" id="lk-ge" d="M344 268 V288 H170 V302"/>
+
+          <!-- model boundary -->
+          <rect id="bnd" x="366" y="430" width="592" height="188" rx="16"/>
+          <text id="bndL" x="382" y="454">◇ LANGUAGE MODEL BOUNDARY</text>
+          <text id="bndS" x="382" y="470">inside here the model may only re-word facts that are already approved — it cannot add, rank or decide</text>
+          <g id="stamp"><text x="662" y="602" text-anchor="middle">MODEL NEVER INVOKED</text></g>
+
+          <g class="fn dim" id="fn-eva">
+            <rect class="bx" x="392" y="492" width="256" height="82" rx="11"/>
+            <text class="k" x="408" y="514">PERSONA RENDERER · TONE ONLY</text>
+            <text class="t" x="408" y="534">Eva — warm register</text>
+            <text class="r" x="408" y="554">idle</text>
+          </g>
+          <g class="fn dim" id="fn-evan">
+            <rect class="bx" x="676" y="492" width="256" height="82" rx="11"/>
+            <text class="k" x="692" y="514">PERSONA RENDERER · TONE ONLY</text>
+            <text class="t" x="692" y="534">Evan — direct register</text>
+            <text class="r" x="692" y="554">idle</text>
+          </g>
+          <path class="lk" id="lk-se"  d="M520 382 V492"/>
+          <path class="lk" id="lk-sev" d="M660 382 V442 H804 V492"/>
+
+          <!-- output guard -->
+          <g class="fn dim" id="fn-gout">
+            <rect class="bx" x="392" y="662" width="304" height="82" rx="11"/>
+            <text class="k" x="408" y="684">OUTPUT GUARD · DETERMINISTIC CODE</text>
+            <text class="t" x="408" y="704">Claim validator</text>
+            <text class="r" x="408" y="724">idle</text>
+            <text class="gtag" x="408" y="656">▼ OUTSIDE THE MODEL BOUNDARY</text>
+          </g>
+          <g class="fn dim" id="fn-out">
+            <rect class="bx" x="744" y="662" width="188" height="82" rx="11"/>
+            <text class="k" x="758" y="684">DELIVERY</text>
+            <text class="t" x="758" y="704">Answer to patient</text>
+            <text class="r" x="758" y="724">idle</text>
+          </g>
+          <path class="lk" id="lk-eg"  d="M520 578 V662"/>
+          <path class="lk" id="lk-evg" d="M804 578 V626 H600 V662"/>
+          <path class="lk" id="lk-go"  d="M700 702 H738"/>
+          <path class="lk" id="lk-regen" d="M400 702 H352 V534 H386"/>
+          <text class="gtag" id="regenL" x="292" y="620" opacity="0">reject → regenerate</text>
+
+          <!-- audit -->
+          <g class="fn dim" id="fn-audit">
+            <rect class="bx" x="34" y="772" width="898" height="52" rx="11"/>
+            <text class="k" x="48" y="792">COMPLIANCE · APPEND-ONLY</text>
+            <text class="t" x="48" y="810">Audit log — every message, every guard decision, every escalation</text>
+            <text class="r" x="620" y="810">idle</text>
+          </g>
+          <path class="lk" id="lk-oa" d="M838 748 V766"/>
+          <path class="lk" id="lk-ea" d="M170 390 V766"/>
+        </svg>
+        </div>
+        <p class="scrollhint">↔ scroll the diagram sideways</p>
+
+        <div class="sysctl">
+          <span class="lbl">Send a message through the graph</span>
+          <button class="sbtn" data-run="normal">▶ A normal question</button>
+          <button class="sbtn red" data-run="meds">▶ “Should I stop taking my blood pressure medication?”</button>
+          <button class="sbtn red" data-run="chestpain">▶ “Crushing chest pain and can't breathe”</button>
+        </div>
+        <div class="sysctl">
+          <span class="lbl">Prove the guardrails are real</span>
+          <button class="sbtn" id="fBoth">◧ Both personas from one shared object</button>
+          <button class="sbtn amb" id="fInject" aria-pressed="false">⚠ Force the model to invent a claim</button>
+          <button class="sbtn" id="fReplay">↻ Replay last message</button>
+        </div>
+
+        <div class="syslog" id="fLog"></div>
+      </div>
+
+      <div class="sysnote">
+        <b>Why the boundary is the whole argument.</b> A guardrail written into a prompt lives
+        <b>inside</b> the dashed box. It is one clever question away from being talked around, and it
+        has to be rewritten into every persona — so Eva and Evan drift apart the moment someone edits
+        one of them. Every guard in this graph is ordinary deterministic code sitting <b>outside</b>
+        the box: one implementation, centrally maintained, applied identically to Eva, to Evan, and to
+        any persona added later. The model is never asked to police itself, and a blocked message never
+        reaches it at all.
+      </div>
+
+      <footer>The trace above is real: the same guard functions that run in the chat drive this diagram, and the claim validator re-checks the rendered answer against the shared clinical result object every time. Node timings are illustrative.</footer>
+    </section>
   </div>
 </main>
 
@@ -417,6 +700,9 @@
     </button>
     <button class="nb" data-tab="prove">
       <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Prove it
+    </button>
+    <button class="nb" data-tab="flow">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="6" rx="1.5"/><rect x="14" y="15" width="7" height="6" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/><path d="M6.5 9v6M10 18h4M17.5 15V9H6.5"/></svg>How it works
     </button>
   </div>
 </nav>
@@ -884,7 +1170,7 @@ $("#sheet").onclick = e => { if (e.target.id === "sheet") closeSheet(); };
 
 /* ---- tabs ---- */
 function go(tab){
-  ["results","ask","prove"].forEach(t => $("#tab-" + t).hidden = (t !== tab));
+  ["results","ask","prove","flow"].forEach(t => $("#tab-" + t).hidden = (t !== tab));
   $$(".nb").forEach(b => b.setAttribute("aria-current", b.dataset.tab === tab));
   window.scrollTo(0,0);
 }
@@ -944,6 +1230,9 @@ function send(text, forced){
   busy = true;
   bubble("msg me", strip(text));
   const a = forced || answerFor(text);
+  // drive the system-view graph from the real send path, so the diagram is a
+  // trace of what actually happened rather than a canned animation
+  if (typeof runFlow === "function") runFlow(strip(text), a);
   const typing = bubble("typing", "<i></i><i></i><i></i>");
 
   setTimeout(() => {
@@ -1062,6 +1351,312 @@ ${a.facts.map(f => `    <span class="s">"${f}"</span>`).join(",\n")}
 }</pre>`;
 }
 
+/* =====================================================================
+   SYSTEM LAYER — the guards, and the graph that visualises them.
+
+   These rules are ORDINARY CODE. They run before the persona layer is
+   ever reached, they are not part of any prompt, and there is exactly
+   one copy of them for every persona that will ever exist. That is the
+   entire point: a guardrail the model could argue with is not a
+   guardrail, it is a suggestion.
+   ===================================================================== */
+
+const INPUT_GUARD_RULES = [
+  { id:"URG-01", label:"urgent symptom", action:"urgent",
+    re:/\bchest pain\b|\bcrushing\b|\bcan'?t breathe\b|\bcannot breathe\b|\bshort of breath\b|\bcough(ing)? (up )?blood\b|\bface drooping\b|\bslurred\b|\bworst headache\b|\bpassing out\b|\bnumb\b|\bsuicid/i },
+  { id:"MED-01", label:"medication advice", action:"block",
+    re:/\b(stop|start|skip|halve|double|quit|come off|change)\b[^.?!]{0,26}\b(taking|my|the|this|med|meds|medication|medicine|pill|pills|tablet|tablets|statin|prescription|blood pressure)\b|\bdosage\b|\bwhat dose\b|\bshould i (take|be taking)\b/i },
+  { id:"DX-01", label:"diagnosis or prognosis request", action:"block",
+    re:/\bis (this|it) cancer\b|\bdo i have cancer\b|\bam i (dying|going to die)\b|\bwill i die\b|\bhow long do i have\b|\bterminal\b|\bsurvival\b|\bwill it kill me\b|\bjust tell me if it'?s cancer\b|\bdiagnose me\b|\bprognosis\b/i }
+];
+
+function inputGuard(text){
+  for (const r of INPUT_GUARD_RULES){
+    const m = String(text).match(r.re);
+    if (m) return { pass:false, rule:r, hit:m[0].trim() };
+  }
+  return { pass:true, rule:null, hit:null };
+}
+
+/* The output guard re-uses the SAME fact machinery the Prove-it tab uses:
+   every clinical claim in the rendered answer must already exist on the
+   shared clinical result object. Anything else is an unsupported claim. */
+function outputGuard(renderedHtml, approvedFacts){
+  const claimed = marksIn(renderedHtml);
+  const approved = new Set(approvedFacts);
+  const unsupported = claimed.filter(c => !approved.has(c));
+  return { pass:unsupported.length === 0, checked:claimed.length, unsupported };
+}
+
+/* ---- graph plumbing ---- */
+const gSvg  = () => $("#fgraph");
+const fnode = id => $("#fn-" + id);
+const flink = id => $("#lk-" + id);
+const wait  = ms => new Promise(r => setTimeout(r, ms));
+
+function setNode(id, cls, readout){
+  const n = fnode(id); if (!n) return;
+  n.classList.remove("dim","on","done","bad","warn");
+  if (cls) n.classList.add(cls);
+  if (readout !== undefined) n.querySelector("text.r").textContent = readout;
+}
+function setLink(id, cls){
+  const l = flink(id); if (!l) return;
+  l.classList.remove("on","bad","done","off");
+  if (cls) l.classList.add(cls);
+}
+function fstat(txt, kind){
+  const el = $("#fstat");
+  el.textContent = txt;
+  el.className = "st" + (kind ? " " + kind : "");
+}
+let fclock = 0;
+function flog(node, text, kind){
+  fclock += 8 + Math.floor(Math.random() * 22);
+  const d = document.createElement("div");
+  d.className = "l" + (kind ? " " + kind : "");
+  d.innerHTML = `<span class="tm">+${String(fclock).padStart(4,"0")}ms</span>` +
+                `<span class="nd">${node}</span><span class="tx"></span>`;
+  d.querySelector(".tx").textContent = text;
+  $("#fLog").appendChild(d);
+  $("#fLog").scrollTop = $("#fLog").scrollHeight;
+}
+
+function resetGraph(keepIngest){
+  ["msg","gin","shared","eva","evan","gout","out","esc","audit"].forEach(id => setNode(id, "dim", "idle"));
+  ["mg","gs","ge","se","sev","eg","evg","go","oa","ea","regen"].forEach(id => setLink(id, null));
+  if (!keepIngest){
+    ["report","extract","risk"].forEach(id => setNode(id, "dim", "idle"));
+    ["re","er","rs"].forEach(id => setLink(id, null));
+  }
+  gSvg().classList.remove("blive","bnever","xblock");
+  $("#regenL").setAttribute("opacity", "0");
+}
+
+let ingestDone = false;
+async function runIngest(){
+  if (ingestDone) return;
+  ingestDone = true;
+  flog("intake", "report received — signed by the reporting radiologist", "m");
+  setNode("report","on","signed · immutable"); setLink("re","on"); await wait(520);
+  setNode("report","done","signed · immutable");
+  setNode("extract","on","parsing findings + impression"); await wait(560);
+  setNode("extract","done", FINDINGS.length + " typed finding objects");
+  flog("extraction", FINDINGS.length + " findings typed — region, measurement, descriptor, recommendation");
+  setLink("re","done"); setLink("er","on"); await wait(480);
+  setNode("risk","on","applying clinical rule table"); await wait(600);
+  const counts = ["red","amber","green"].map(l => FINDINGS.filter(f => f.level === l).length);
+  setNode("risk","done", `${counts[0]} red · ${counts[1]} amber · ${counts[2]} green`);
+  flog("risk_rank", "tiers assigned by rule table — the model has no vote here");
+  setLink("er","done"); setLink("rs","on"); await wait(460);
+  setNode("shared","done", FINDINGS.length + " findings · read-only downstream");
+  setLink("rs","done");
+  flog("shared_obj", "clinical result object sealed");
+  fstat("ready");
+}
+
+let injectBad = false;
+let lastRun = null;
+let running = false;
+
+async function runFlow(text, answer){
+  if (running) return;
+  running = true;
+  lastRun = { text, answer };
+  await runIngest();
+  resetGraph(true);
+  fclock = 0; $("#fLog").innerHTML = "";
+
+  const guard = inputGuard(text);
+  const short = text.length > 44 ? text.slice(0, 44) + "…" : text;
+
+  fstat("running", "warn");
+  setNode("msg","on", short);
+  flog("inbound", `patient message · ${text.length} chars · persona=${VOICE[persona].name}`);
+  setLink("mg","on"); await wait(520);
+  setNode("msg","done","received");
+
+  setNode("gin","on","classifying intent · 3 rule families");
+  flog("input_guard", "evaluating URG / MED / DX rules — deterministic, no model call");
+  await wait(680);
+
+  /* ---- (c) urgent symptom: bypass everything ---- */
+  if (!guard.pass && guard.rule.action === "urgent"){
+    setNode("gin","bad", `${guard.rule.id} matched “${guard.hit}” → URGENT`);
+    flog("input_guard", `${guard.rule.id} urgent symptom matched “${guard.hit}”`, "e");
+    setLink("mg","done"); setLink("gs","off");
+    gSvg().classList.add("xblock","bnever");
+    flog("model", "NOT INVOKED — pipeline bypassed entirely", "e");
+    setNode("shared","dim","not reached"); setNode("eva","dim","not reached");
+    setNode("evan","dim","not reached"); setNode("gout","dim","not reached");
+    await wait(640);
+    setLink("ge","bad");
+    setNode("esc","bad","emergency guidance returned · clinician paged");
+    flog("escalation", "tier-1 emergency path — seek-care-now guidance, clinical team paged", "e");
+    await wait(600);
+    setLink("ea","bad");
+    setNode("audit","warn","urgent_symptom · model_invoked=false");
+    flog("audit_log", "written · outcome=emergency_escalation · model_invoked=false");
+    fstat("escalated — urgent", "bad");
+    running = false; return;
+  }
+
+  /* ---- (b) blocked: stops dead OUTSIDE the model ---- */
+  if (!guard.pass){
+    setNode("gin","bad", `${guard.rule.id} matched “${guard.hit}” → BLOCK`);
+    flog("input_guard", `${guard.rule.id} ${guard.rule.label} matched “${guard.hit}” → BLOCK`, "e");
+    setLink("mg","done"); await wait(420);
+    setLink("gs","off");
+    gSvg().classList.add("xblock","bnever");
+    flog("model", "NOT INVOKED — the request never crossed the boundary", "e");
+    setNode("shared","dim","not reached"); setNode("eva","dim","not reached");
+    setNode("evan","dim","not reached"); setNode("gout","dim","not reached");
+    await wait(760);
+    setLink("ge","bad");
+    setNode("esc","bad","routed to clinician queue");
+    flog("escalation", "queued for licensed clinician · patient told plainly why", "e");
+    await wait(580);
+    setLink("ea","bad");
+    setNode("audit","warn", `${guard.rule.id} · blocked_before_model=true`);
+    flog("audit_log", `written · rule=${guard.rule.id} · blocked_before_model=true`);
+    fstat("blocked before the model", "bad");
+    running = false; return;
+  }
+
+  /* ---- (a) happy path ---- */
+  setNode("gin","done","no rule matched · PASS");
+  flog("input_guard", "no rule matched · PASS");
+  setLink("mg","done"); setLink("gs","on"); await wait(500);
+
+  const facts = (answer && answer.facts) ? answer.facts : [];
+  setNode("shared","on", facts.length ? `${facts.length} approved facts` : "no matching record");
+  flog("shared_obj", answer ? `resolved “${answer.id}” · ${facts.length} approved clinical facts`
+                            : "no scripted record matched — graceful fallback path");
+  await wait(560);
+  setNode("shared","done", facts.length ? `${facts.length} facts released` : "fallback");
+  setLink("gs","done");
+
+  gSvg().classList.add("blive");
+  const act = persona, oth = persona === "eva" ? "evan" : "eva";
+  setLink(act === "eva" ? "se" : "sev", "on"); await wait(420);
+  setNode(act,"on","applying tone · facts locked");
+  setNode(oth,"dim","not called");
+  flog("persona_" + act, `rendering in ${VOICE[act].tone.toLowerCase()} register · fact set immutable`);
+  await wait(660);
+  setNode(act,"done","rendered");
+  setLink(act === "eva" ? "se" : "sev", "done");
+  setLink(act === "eva" ? "eg" : "evg", "on");
+  await wait(430);
+
+  setNode("gout","on","validating every claim against the shared object");
+  flog("output_guard", "diffing rendered clinical claims against the approved fact set");
+  await wait(700);
+
+  const rendered = answer ? answer[act] : "";
+  let verdict = answer ? outputGuard(rendered, facts) : { pass:true, checked:0, unsupported:[] };
+
+  if (injectBad && answer){
+    /* a real check, not a mimed one: we append a claim that is genuinely
+       absent from the shared object and run the genuine validator on it */
+    const rogue = rendered + ` <mark class="f">this is almost certainly benign</mark>`;
+    verdict = outputGuard(rogue, facts);
+    setNode("gout","bad", `${verdict.unsupported.length} unsupported claim → REJECT`);
+    flog("output_guard", `REJECT — “${verdict.unsupported[0]}” is not on the shared object`, "e");
+    gSvg().classList.remove("blive");
+    setLink(act === "eva" ? "eg" : "evg", "bad");
+    setLink("go","off");
+    $("#regenL").setAttribute("opacity","1"); setLink("regen","bad");
+    await wait(880);
+    setNode(act,"warn","regenerating · attempt 2");
+    flog("persona_" + act, "regenerating from the shared clinical result object", "w");
+    gSvg().classList.add("blive");
+    await wait(720);
+    setLink("regen", null); $("#regenL").setAttribute("opacity","0");
+    setNode(act,"done","rendered · attempt 2");
+    setLink(act === "eva" ? "eg" : "evg", "on");
+    await wait(400);
+    verdict = outputGuard(rendered, facts);
+    setNode("gout","done", `attempt 2 · ${verdict.checked}/${verdict.checked} matched · PASS`);
+    flog("output_guard", "attempt 2 PASS · 0 unsupported claims");
+  } else {
+    setNode("gout", verdict.pass ? "done" : "bad",
+      verdict.pass ? `${verdict.checked}/${verdict.checked} claims matched · PASS`
+                   : `${verdict.unsupported.length} unsupported · REJECT`);
+    flog("output_guard", verdict.pass
+      ? `${verdict.checked} clinical claims all traced to the shared object · PASS`
+      : `REJECT — ${verdict.unsupported.length} unsupported claim(s)`, verdict.pass ? "" : "e");
+  }
+
+  setLink(act === "eva" ? "eg" : "evg", "done");
+  setLink("go","on"); await wait(400);
+  setNode("out","on","delivered to patient"); await wait(360);
+  setNode("out","done","delivered");
+  setLink("go","done"); setLink("oa","on");
+  setNode("audit","on", `in=PASS · out=PASS · persona=${VOICE[act].name}`);
+  flog("audit_log", `written · guards in=PASS out=PASS · persona=${VOICE[act].name}`);
+  await wait(320);
+  setLink("oa","done");
+  setNode("audit","done","in=PASS · out=PASS");
+  fstat("complete");
+  running = false;
+}
+
+/* ---- system-view controls ---- */
+$$("[data-run]").forEach(b => b.onclick = () => {
+  const a = ANSWERS.find(x => x.id === b.dataset.run)
+         || ANSWERS.find(x => x.id === "urgent");
+  send(a.chip, a);
+});
+
+$("#fReplay").onclick = () => {
+  if (lastRun) runFlow(lastRun.text, lastRun.answer);
+  else { const a = ANSWERS.find(x => x.id === "urgent"); send(a.chip, a); }
+};
+
+$("#fInject").onclick = e => {
+  injectBad = !injectBad;
+  e.currentTarget.setAttribute("aria-pressed", injectBad);
+  e.currentTarget.textContent = injectBad
+    ? "⚠ Invented claim ARMED — now send a question"
+    : "⚠ Force the model to invent a claim";
+  flog("harness", injectBad
+    ? "fault injection ON — the next render will assert a claim that is not on the shared object"
+    : "fault injection OFF", "w");
+};
+
+/* both personas, one shared object — the graph half of the Prove-it argument */
+$("#fBoth").onclick = async () => {
+  if (running) return;
+  running = true;
+  await runIngest();
+  resetGraph(true);
+  fclock = 0; $("#fLog").innerHTML = "";
+  const a = ANSWERS.find(x => x.id === "kidney") || ANSWERS[0];
+  const n = a.facts.length;
+  gSvg().classList.add("blive");
+  setNode("shared","done", `${n} approved facts · one source`);
+  flog("shared_obj", `one clinical result object · ${n} approved facts`);
+  setLink("se","on"); setLink("sev","on"); await wait(520);
+  setNode("eva","on","warm register · 0 facts added");
+  setNode("evan","on","direct register · 0 facts added");
+  flog("prove", "both renderers invoked from the SAME shared object");
+  await wait(660);
+  setLink("se","done"); setLink("sev","done");
+  setLink("eg","on"); setLink("evg","on");
+  const rE = outputGuard(a.eva, a.facts), rN = outputGuard(a.evan, a.facts);
+  const same = JSON.stringify(marksIn(a.eva).slice().sort()) === JSON.stringify(marksIn(a.evan).slice().sort());
+  await wait(520);
+  setNode("gout", (rE.pass && rN.pass && same) ? "done" : "bad",
+    `${rE.checked} + ${rN.checked} claims · identical=${same} · ${(rE.pass && rN.pass) ? "PASS" : "REJECT"}`);
+  flog("output_guard", `both outputs validated against the same fact set · identical=${same} · ${(rE.pass && rN.pass && same) ? "PASS" : "REJECT"}`,
+    (rE.pass && rN.pass && same) ? "" : "e");
+  setLink("eg","done"); setLink("evg","done");
+  setNode("out","done","both variants deliverable");
+  setNode("audit","done","persona_compare · facts_identical=" + same);
+  fstat(same ? "identical facts, two voices" : "divergence!", same ? "" : "bad");
+  running = false;
+};
+
 /* boot */
 paintSettings();
 setPersona("eva");
@@ -1073,6 +1668,45 @@ renderProve();
   const bad = ANSWERS.filter(a => { const r = verifyFacts(a); return !(r.same && r.declared); });
   if (bad.length) console.error("FACT PARITY FAILED:", bad.map(a => a.id), bad.map(a => verifyFacts(a)));
   else console.log("✓ fact parity: all " + ANSWERS.length + " scripted answers verified identical across personas");
+
+  /* the guards are the product claim, so they get a runnable check too */
+  const t = [];
+  const must = (name, cond) => t.push({ name, ok: !!cond });
+
+  must("MED-01 blocks the blood-pressure question",
+    inputGuard("Should I stop taking my blood pressure medication?").rule?.id === "MED-01");
+  must("URG-01 catches crushing chest pain",
+    inputGuard("I've got crushing chest pain and can't breathe").rule?.id === "URG-01");
+  must("DX-01 catches a diagnosis request",
+    inputGuard("Is this cancer?").rule?.id === "DX-01");
+  must("DX-01 catches a prognosis request",
+    inputGuard("Am I going to die?").rule?.id === "DX-01");
+  must("DX-01 catches the pressured re-ask",
+    inputGuard("Just tell me if it's cancer").rule?.id === "DX-01");
+  must("a normal question passes",
+    inputGuard("What should I ask my doctor?").pass === true);
+  must("'how urgent is it' is NOT mistaken for an emergency",
+    inputGuard("How urgent is the kidney one?").pass === true);
+  must("'can I still exercise' passes",
+    inputGuard("Can I still exercise?").pass === true);
+  must("every guard rule is code, not prose",
+    INPUT_GUARD_RULES.every(r => r.re instanceof RegExp));
+  must("output guard accepts an answer built only from approved facts",
+    ANSWERS.every(a => outputGuard(a.eva, a.facts).pass && outputGuard(a.evan, a.facts).pass));
+  must("output guard rejects an invented clinical claim",
+    outputGuard(ANSWERS[0].eva + ' <mark class="f">this is almost certainly benign</mark>',
+                ANSWERS[0].facts).pass === false);
+  must("every graph node referenced by the animation exists",
+    ["report","extract","risk","msg","gin","shared","eva","evan","gout","out","esc","audit"]
+      .every(id => !!document.getElementById("fn-" + id)));
+  must("every connector referenced by the animation exists",
+    ["re","er","rs","mg","gs","ge","se","sev","eg","evg","go","oa","ea","regen"]
+      .every(id => !!document.getElementById("lk-" + id)));
+
+  const fails = t.filter(x => !x.ok);
+  if (fails.length) console.error("GUARDRAIL SELF-CHECK FAILED:", fails.map(f => f.name));
+  else console.log("✓ guardrails: " + t.length + "/" + t.length + " checks passed");
+  window.__checks = { factParity: bad.length === 0, guards: t };
 })();
 </script>
 </body>
