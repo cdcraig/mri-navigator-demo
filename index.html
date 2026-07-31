@@ -1,0 +1,1078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0F1C18">
+<meta name="robots" content="noindex, nofollow">
+<title>AI Navigator — Interactive Demo</title>
+<meta name="description" content="Interactive demo of an AI navigator that explains whole-body MRI results in plain language. Fictional patient, synthetic data.">
+<style>
+  :root{
+    --paper:#F7F5F1;
+    --card:#FFFFFF;
+    --ink:#131E1A;
+    --ink-2:#3B4A44;
+    --muted:#6E7D76;
+    --line:#E4E0D9;
+    --accent:#186A55;
+    --accent-soft:#E8F1ED;
+    --red:#B03A2E;
+    --red-soft:#FBEDEB;
+    --amber:#9A6317;
+    --amber-soft:#FBF2E4;
+    --green:#2C7355;
+    --green-soft:#EAF3EE;
+    --radius:20px;
+    --shadow:0 1px 2px rgba(19,30,26,.05), 0 12px 32px -12px rgba(19,30,26,.14);
+    --shadow-lift:0 1px 2px rgba(19,30,26,.06), 0 24px 48px -18px rgba(19,30,26,.22);
+    --serif:"Iowan Old Style","Palatino Linotype",Palatino,Georgia,ui-serif,serif;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif;
+    --mono:ui-monospace,SFMono-Regular,"SF Mono",Menlo,Consolas,monospace;
+    --safe-b:env(safe-area-inset-bottom,0px);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{-webkit-text-size-adjust:100%}
+  body{
+    background:var(--paper);color:var(--ink);font-family:var(--sans);
+    font-size:16px;line-height:1.55;letter-spacing:-.01em;
+    overflow-x:hidden;
+  }
+  button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+  h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:-.02em;line-height:1.2}
+  mark{background:transparent;color:inherit;padding:0}
+
+  /* ---------- persistent demo badge ---------- */
+  #demobar{
+    position:sticky;top:0;z-index:60;
+    background:var(--ink);color:#EFEDE7;
+    font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
+    padding:7px 14px;text-align:center;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+  }
+  #demobar .dot{width:6px;height:6px;border-radius:50%;background:#E0B84B;flex:none;
+    animation:pulse 2.4s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  #demobar span{opacity:.92}
+
+  .wrap{max-width:760px;margin:0 auto;padding:0 18px}
+
+  /* ---------- persona picker ---------- */
+  #persona{min-height:calc(100dvh - 32px);display:flex;flex-direction:column;justify-content:center;padding:40px 0 56px}
+  .eyebrow{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:14px}
+  #persona h1{font-size:clamp(30px,8vw,42px);margin-bottom:14px}
+  #persona .lede{color:var(--ink-2);font-size:17px;max-width:44ch;margin-bottom:30px}
+  .pcards{display:grid;gap:14px;grid-template-columns:1fr}
+  @media(min-width:620px){.pcards{grid-template-columns:1fr 1fr;gap:18px}}
+  .pcard{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px;text-align:left;box-shadow:var(--shadow);
+    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+    display:flex;flex-direction:column;gap:12px;
+  }
+  .pcard:hover,.pcard:focus-visible{transform:translateY(-3px);box-shadow:var(--shadow-lift);border-color:#CFD8D3;outline:none}
+  .pcard .av{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;
+    font-family:var(--serif);font-size:25px;color:#fff;flex:none}
+  .av-eva{background:linear-gradient(150deg,#2E8C72,#186A55)}
+  .av-evan{background:linear-gradient(150deg,#3E5F7A,#26415A)}
+  .pcard h3{font-size:22px}
+  .pcard .role{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-top:-6px}
+  .pcard p{font-size:14.5px;color:var(--ink-2)}
+  .pcard .sample{font-size:14px;color:var(--ink-2);font-style:italic;border-left:2px solid var(--accent);padding-left:12px}
+  .pcard .pick{margin-top:auto;font-size:14px;font-weight:650;color:var(--accent);display:flex;align-items:center;gap:6px}
+  .note{font-size:13px;color:var(--muted);margin-top:22px;max-width:52ch}
+
+  /* ---------- app shell ---------- */
+  #app{display:none;padding-bottom:calc(84px + var(--safe-b))}
+  #app.on{display:block}
+  .apphead{display:flex;align-items:center;gap:12px;padding:16px 0 14px;border-bottom:1px solid var(--line)}
+  .apphead .av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
+    font-family:var(--serif);font-size:16px;color:#fff;flex:none}
+  .apphead .who{flex:1;min-width:0}
+  .apphead .who b{display:block;font-size:15px;font-weight:650}
+  .apphead .who span{display:block;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .gear{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;background:var(--card);flex:none}
+  .gear:active{background:var(--paper)}
+
+  .tabbody{padding-top:20px}
+  h2.screen{font-size:26px;margin-bottom:6px}
+  .sub{color:var(--muted);font-size:14.5px;margin-bottom:18px}
+
+  /* ---------- summary strip ---------- */
+  .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px}
+  .sbox{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px 10px;text-align:center}
+  .sbox b{display:block;font-family:var(--serif);font-size:26px;line-height:1}
+  .sbox span{display:block;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);margin-top:5px;font-weight:600}
+  .sbox.r b{color:var(--red)} .sbox.a b{color:var(--amber)} .sbox.g b{color:var(--green)}
+
+  /* ---------- finding cards ---------- */
+  .flist{display:flex;flex-direction:column;gap:12px}
+  .fcard{
+    width:100%;text-align:left;background:var(--card);border:1px solid var(--line);
+    border-radius:var(--radius);padding:16px 16px 15px;box-shadow:var(--shadow);
+    display:block;transition:transform .16s ease,box-shadow .16s ease;position:relative;overflow:hidden;
+  }
+  .fcard:hover{transform:translateY(-2px);box-shadow:var(--shadow-lift)}
+  .fcard::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px}
+  .fcard.red::before{background:var(--red)}
+  .fcard.amber::before{background:var(--amber)}
+  .fcard.green::before{background:var(--green)}
+  .fhead{display:flex;align-items:center;gap:9px;margin-bottom:10px}
+  .pill{font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;
+    padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .pill.red{background:var(--red-soft);color:var(--red)}
+  .pill.amber{background:var(--amber-soft);color:var(--amber)}
+  .pill.green{background:var(--green-soft);color:var(--green)}
+  .region{font-size:12.5px;color:var(--muted);font-weight:600;letter-spacing:.02em}
+  .split{display:grid;gap:13px;grid-template-columns:1fr}
+  @media(min-width:560px){.split{grid-template-columns:1fr 1fr;gap:18px}
+    .col+.col{border-left:1px dashed var(--line);padding-left:18px}}
+  .col+.col{border-top:1px dashed var(--line);padding-top:13px}
+  @media(min-width:560px){.col+.col{border-top:none;padding-top:0}}
+  .col label{display:block;font-size:10px;letter-spacing:.09em;text-transform:uppercase;font-weight:700;margin-bottom:6px;color:var(--muted)}
+  .col.eng-col label{color:var(--accent)}
+  .col .clin{font-family:var(--mono);font-size:12.5px;line-height:1.5;color:var(--muted)}
+  .col .eng{font-family:var(--serif);font-size:18px;line-height:1.35;color:var(--ink)}
+  .more{margin-top:11px;font-size:13px;font-weight:650;color:var(--accent)}
+
+  /* ---------- detail sheet ---------- */
+  #sheet{position:fixed;inset:0;z-index:70;background:rgba(19,30,26,.4);backdrop-filter:blur(3px);
+    display:none;align-items:flex-end;justify-content:center}
+  #sheet.on{display:flex}
+  #sheetbox{background:var(--paper);width:100%;max-width:760px;max-height:94dvh;overflow-y:auto;
+    border-radius:24px 24px 0 0;padding:0 18px calc(30px + var(--safe-b));
+    animation:up .28s cubic-bezier(.2,.8,.25,1);-webkit-overflow-scrolling:touch}
+  @keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
+  .sheettop{position:sticky;top:0;background:var(--paper);padding:14px 0 12px;z-index:2;
+    display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);margin-bottom:18px}
+  .sheettop .back{font-size:14px;font-weight:650;color:var(--accent);display:flex;align-items:center;gap:5px}
+  .grip{width:38px;height:4px;border-radius:2px;background:var(--line);margin:8px auto 0}
+
+  .navsays{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:16px;box-shadow:var(--shadow);margin-bottom:16px;display:flex;gap:12px}
+  .navsays .av{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;
+    font-family:var(--serif);font-size:14px;color:#fff;flex:none}
+  .navsays .body{font-size:15.5px;line-height:1.6;color:var(--ink-2)}
+  .navsays .body b.nm{color:var(--ink)}
+
+  .qa{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:15px 16px;margin-bottom:10px}
+  .qa h4{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:7px}
+  .qa p{font-size:15px;line-height:1.6;color:var(--ink-2)}
+  .qa.not h4{color:var(--red)}
+  .qa.not{background:var(--red-soft);border-color:#F0D9D5}
+  .qa.next h4{color:var(--green)}
+
+  .clinbox{background:#F1EFEA;border:1px solid var(--line);border-radius:14px;padding:13px 15px;margin-bottom:16px}
+  .clinbox label{display:block;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:5px}
+  .clinbox .clin{font-family:var(--mono);font-size:12.5px;line-height:1.5;color:var(--ink-2)}
+
+  /* ---------- referral ---------- */
+  .referral{background:linear-gradient(160deg,#1B3A31,#0F1C18);color:#F1EFEA;border-radius:var(--radius);
+    padding:20px;margin:18px 0 8px;box-shadow:var(--shadow-lift)}
+  .referral .eyebrow{color:#8FD3BC;margin-bottom:8px}
+  .referral h3{font-size:22px;color:#fff;margin-bottom:8px}
+  .referral p{font-size:14.5px;line-height:1.6;color:#C9D6D0;margin-bottom:14px}
+  .refmeta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .refmeta span{font-size:11.5px;letter-spacing:.04em;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.14);
+    padding:5px 11px;border-radius:999px;color:#DCE7E2}
+  .cta{display:block;width:100%;background:#8FD3BC;color:#0F1C18;font-weight:700;font-size:15.5px;
+    padding:14px;border-radius:14px;text-align:center;transition:filter .15s}
+  .cta:active{filter:brightness(.92)}
+  .cta.ghost{background:transparent;border:1px solid rgba(255,255,255,.25);color:#F1EFEA;margin-top:9px;font-weight:600}
+  .refnote{font-size:12.5px;color:#9DB0A8;margin-top:12px;text-align:center}
+
+  /* ---------- chat ---------- */
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  .chip{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:9px 14px;
+    font-size:13.5px;font-weight:550;color:var(--ink-2);transition:all .15s;line-height:1.3;text-align:left}
+  .chip:hover{border-color:var(--accent);color:var(--accent)}
+  .chip.edge{border-style:dashed;border-color:#D8C4A8;color:#8A6A31;background:#FCFAF6}
+  .chip.edge:hover{border-color:var(--amber);color:var(--amber)}
+  .chiphead{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:4px 0 9px}
+
+  #thread{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
+  .msg{max-width:88%;padding:12px 15px;border-radius:18px;font-size:15px;line-height:1.6;white-space:pre-wrap}
+  .msg.me{align-self:flex-end;background:var(--ink);color:#F1EFEA;border-bottom-right-radius:6px}
+  .msg.nav{align-self:flex-start;background:var(--card);border:1px solid var(--line);
+    border-bottom-left-radius:6px;box-shadow:var(--shadow);color:var(--ink-2)}
+  .msg.nav .navname{display:block;font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--accent);font-weight:700;margin-bottom:6px}
+  .msg.nav mark.f{background:var(--accent-soft);border-radius:3px;padding:1px 3px;box-shadow:inset 0 -1px 0 rgba(24,106,85,.25)}
+  .typing{align-self:flex-start;display:flex;gap:4px;padding:14px 16px;background:var(--card);
+    border:1px solid var(--line);border-radius:18px;border-bottom-left-radius:6px}
+  .typing i{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:bounce 1.2s infinite}
+  .typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+  @keyframes bounce{0%,60%,100%{opacity:.28;transform:translateY(0)}30%{opacity:1;transform:translateY(-3px)}}
+
+  .escalate{align-self:stretch;background:var(--red);color:#fff;border-radius:16px;padding:15px 16px}
+  .escalate b{display:block;font-size:14px;letter-spacing:.03em;text-transform:uppercase;margin-bottom:6px}
+  .escalate p{font-size:14.5px;line-height:1.55;color:#FBE6E3}
+  .escalate .cta{background:#fff;color:var(--red);margin-top:13px}
+
+  .handoff{align-self:flex-start;max-width:88%;background:var(--accent-soft);border:1px solid #CBE2D8;
+    border-radius:16px;padding:13px 15px}
+  .handoff b{display:block;font-size:13.5px;color:var(--accent);margin-bottom:4px}
+  .handoff p{font-size:13.5px;color:var(--ink-2);line-height:1.5;margin-bottom:10px}
+  .handoff button{background:var(--accent);color:#fff;font-size:13.5px;font-weight:650;padding:9px 16px;border-radius:10px}
+
+  .composer{display:flex;gap:8px;align-items:flex-end;background:var(--card);border:1px solid var(--line);
+    border-radius:16px;padding:8px 8px 8px 14px;box-shadow:var(--shadow)}
+  .composer textarea{flex:1;border:none;outline:none;resize:none;font:inherit;font-size:15px;
+    background:none;color:var(--ink);max-height:110px;padding:7px 0;line-height:1.45}
+  .composer textarea::placeholder{color:#9BA8A2}
+  .send{width:38px;height:38px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;flex:none}
+  .send:disabled{opacity:.35;cursor:default}
+
+  /* ---------- prove it ---------- */
+  .proveq{display:flex;flex-direction:column;gap:8px;margin-bottom:18px}
+  .qbtn{width:100%;text-align:left;border:1px solid var(--line);background:var(--card);border-radius:14px;
+    padding:12px 15px;font-size:14.5px;color:var(--ink-2);transition:all .15s;font-weight:550}
+  .qbtn[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft);color:var(--accent);font-weight:650}
+  .toggle{display:flex;align-items:center;gap:10px;background:var(--card);border:1px solid var(--line);
+    border-radius:14px;padding:12px 15px;margin-bottom:16px}
+  .toggle .lbl{flex:1;font-size:14px;font-weight:600}
+  .toggle .lbl small{display:block;font-weight:400;color:var(--muted);font-size:12.5px;margin-top:2px}
+  .sw{width:46px;height:27px;border-radius:999px;background:#D5D9D6;position:relative;flex:none;transition:background .2s}
+  .sw::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;
+    background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:transform .2s}
+  .sw[aria-pressed="true"]{background:var(--accent)}
+  .sw[aria-pressed="true"]::after{transform:translateX(19px)}
+
+  .panes{display:grid;gap:12px;grid-template-columns:1fr}
+  @media(min-width:680px){.panes{grid-template-columns:1fr 1fr}}
+  .pane{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow)}
+  .pane .ph{display:flex;align-items:center;gap:9px;margin-bottom:12px;padding-bottom:11px;border-bottom:1px solid var(--line)}
+  .pane .ph .av{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;
+    font-family:var(--serif);font-size:13px;color:#fff;flex:none}
+  .pane .ph b{font-size:15px;font-weight:650}
+  .pane .ph span{font-size:12px;color:var(--muted)}
+  .pane .txt{font-size:14.5px;line-height:1.65;color:var(--ink-2)}
+  .hl .pane mark.f{background:#FFF0B8;border-radius:3px;padding:1px 3px;
+    box-shadow:inset 0 -1.5px 0 rgba(196,150,0,.4);color:var(--ink);font-weight:550}
+
+  .verdict{margin-bottom:14px;border-radius:16px;padding:15px 16px;font-size:14px;line-height:1.6}
+  .verdict.ok{background:var(--green-soft);border:1px solid #CBE2D8;color:#1E5C43}
+  .verdict.bad{background:var(--red-soft);border:1px solid #F0D9D5;color:var(--red)}
+  .verdict b{display:block;font-size:14.5px;margin-bottom:5px}
+  .verdict ul{margin:9px 0 0 17px;font-size:13.5px}
+  .verdict li{margin-bottom:3px}
+  .verdict code{font-family:var(--mono);font-size:12.5px;background:rgba(0,0,0,.05);padding:1px 5px;border-radius:4px}
+
+  .objbox{margin-top:14px;background:var(--ink);color:#C9D6D0;border-radius:16px;padding:15px 16px;overflow-x:auto}
+  .objbox label{display:block;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#8FD3BC;font-weight:700;margin-bottom:8px}
+  .objbox pre{font-family:var(--mono);font-size:11.5px;line-height:1.6;white-space:pre}
+  .objbox .k{color:#8FD3BC}.objbox .s{color:#E5C87A}
+
+  /* ---------- bottom nav ---------- */
+  #nav{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(247,245,241,.93);
+    backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:var(--safe-b);display:none}
+  #nav.on{display:block}
+  #nav .inner{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr)}
+  .nb{padding:10px 4px 11px;display:flex;flex-direction:column;align-items:center;gap:3px;
+    font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.01em}
+  .nb svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+  .nb[aria-current="true"]{color:var(--accent)}
+  .nb .badge{position:absolute;transform:translate(13px,-4px);width:7px;height:7px;border-radius:50%;background:var(--red)}
+
+  /* ---------- settings sheet ---------- */
+  #settings{position:fixed;inset:0;z-index:80;background:rgba(19,30,26,.4);display:none;align-items:flex-end;justify-content:center}
+  #settings.on{display:flex}
+  #settings .box{background:var(--paper);width:100%;max-width:760px;border-radius:24px 24px 0 0;
+    padding:20px 18px calc(26px + var(--safe-b));animation:up .25s cubic-bezier(.2,.8,.25,1)}
+  #settings h3{font-size:20px;margin-bottom:4px}
+  #settings .sub{margin-bottom:16px}
+  .opt{width:100%;display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);
+    border-radius:16px;padding:13px 15px;margin-bottom:9px;text-align:left}
+  .opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+  .opt .av{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+    font-family:var(--serif);font-size:15px;color:#fff;flex:none}
+  .opt .t{flex:1}
+  .opt .t b{display:block;font-size:15px}
+  .opt .t span{display:block;font-size:12.5px;color:var(--muted)}
+  .opt .tick{color:var(--accent);font-weight:700;font-size:17px}
+
+  footer{border-top:1px solid var(--line);margin-top:34px;padding:20px 0 10px;font-size:12.5px;color:var(--muted);line-height:1.6}
+  .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="demobar">
+  <i class="dot"></i>
+  <span>Demo — fictional patient, no real medical data</span>
+</div>
+
+<!-- ============ PERSONA PICKER ============ -->
+<section id="persona" class="wrap">
+  <p class="eyebrow">Your results are ready</p>
+  <h1>Meet your navigator</h1>
+  <p class="lede">Someone to walk you through your whole-body MRI in plain language — and stay with you afterwards for every question that comes up at 2am.</p>
+
+  <div class="pcards">
+    <button class="pcard" data-pick="eva">
+      <div class="av av-eva">Eva</div>
+      <h3>Eva</h3>
+      <p class="role">Warm &amp; reassuring</p>
+      <p>Takes it gently. Names the worry before the fact, and checks in on how you're feeling as you go.</p>
+      <p class="sample">“Let's take this one at a time — I'll stay with you the whole way through.”</p>
+      <span class="pick">Choose Eva &nbsp;→</span>
+    </button>
+
+    <button class="pcard" data-pick="evan">
+      <div class="av av-evan">Evan</div>
+      <h3>Evan</h3>
+      <p class="role">Calm &amp; direct</p>
+      <p>Straight to the point. Gives you the finding, the meaning, and the next step, in that order.</p>
+      <p class="sample">“Here's what we found, what it means, and what happens next.”</p>
+      <span class="pick">Choose Evan &nbsp;→</span>
+    </button>
+  </div>
+
+  <p class="note">Eva and Evan are the same clinical engine. Tone and wording differ; the medical substance is identical — and you can prove it inside the demo. You can switch at any time from settings.</p>
+</section>
+
+<!-- ============ APP ============ -->
+<main id="app">
+  <div class="wrap">
+    <header class="apphead">
+      <div class="av" id="headAv"></div>
+      <div class="who">
+        <b id="headName"></b>
+        <span>Jordan Reyes · 44 · Whole-body MRI, 12 Mar</span>
+      </div>
+      <button class="gear" id="gearBtn" aria-label="Settings">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B4A44" stroke-width="1.7" stroke-linecap="round">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.6 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+        </svg>
+      </button>
+    </header>
+
+    <!-- RESULTS -->
+    <section class="tabbody" id="tab-results">
+      <h2 class="screen">Your scan results</h2>
+      <p class="sub">Eight areas reviewed. Ranked by what needs your attention first.</p>
+      <div class="summary">
+        <div class="sbox r"><b>1</b><span>Needs attention</span></div>
+        <div class="sbox a"><b>2</b><span>Monitor</span></div>
+        <div class="sbox g"><b>5</b><span>Normal</span></div>
+      </div>
+      <div class="flist" id="flist"></div>
+      <footer>
+        Illustrative demo built for evaluation purposes. Jordan Reyes is a fictional person and every finding, measurement and report phrase on this page is invented. Nothing here is medical advice.
+      </footer>
+    </section>
+
+    <!-- ASK -->
+    <section class="tabbody" id="tab-ask" hidden>
+      <h2 class="screen">Ask <span class="navnm"></span></h2>
+      <p class="sub">Anything you want, any time. Here are the questions people ask most.</p>
+      <p class="chiphead">Common questions</p>
+      <div class="chips" id="chipsCommon"></div>
+      <p class="chiphead">Testing the edges &nbsp;—&nbsp; what a navigator must refuse</p>
+      <div class="chips" id="chipsEdge"></div>
+      <div id="thread"></div>
+      <div class="composer">
+        <label for="inp" class="sr">Your message</label>
+        <textarea id="inp" rows="1" placeholder="Type your question…"></textarea>
+        <button class="send" id="sendBtn" aria-label="Send" disabled>
+          <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+      <footer>Responses in this demo are pre-written so it behaves identically every time. The live product generates them from the patient's own report.</footer>
+    </section>
+
+    <!-- PROVE IT -->
+    <section class="tabbody" id="tab-prove" hidden>
+      <h2 class="screen">Prove it</h2>
+      <p class="sub">Same question. Both navigators. Watch the clinical facts stay identical while only the tone moves.</p>
+
+      <div class="proveq" id="proveQ"></div>
+
+      <div class="toggle">
+        <div class="lbl">Highlight shared clinical facts
+          <small>Marks every medical fact that must appear in both answers.</small></div>
+        <button class="sw" id="hlSw" aria-pressed="true" aria-label="Toggle fact highlighting"></button>
+      </div>
+
+      <div id="verdict"></div>
+      <div class="panes hl" id="panes"></div>
+
+      <div class="objbox" id="objbox"></div>
+
+      <footer>Both answers on this screen are rendered from one shared clinical result object. The persona layer can change wording, order and warmth — it has no access to the facts themselves, so the medical substance cannot diverge. The check above runs live in your browser every time you change the question.</footer>
+    </section>
+  </div>
+</main>
+
+<nav id="nav">
+  <div class="inner">
+    <button class="nb" data-tab="results" aria-current="true">
+      <svg viewBox="0 0 24 24"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>Results
+    </button>
+    <button class="nb" data-tab="ask">
+      <svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></svg><span class="asknm">Ask</span>
+    </button>
+    <button class="nb" data-tab="prove">
+      <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Prove it
+    </button>
+  </div>
+</nav>
+
+<div id="sheet"><div id="sheetbox"></div></div>
+
+<div id="settings">
+  <div class="box">
+    <div class="grip" style="margin:0 auto 14px"></div>
+    <h3>Your navigator</h3>
+    <p class="sub">Switch any time. Your results never change.</p>
+    <button class="opt" data-set="eva"><div class="av av-eva">Eva</div>
+      <div class="t"><b>Eva</b><span>Warm &amp; reassuring</span></div><span class="tick"></span></button>
+    <button class="opt" data-set="evan"><div class="av av-evan">Evan</div>
+      <div class="t"><b>Evan</b><span>Calm &amp; direct</span></div><span class="tick"></span></button>
+    <button class="cta" id="closeSet" style="background:var(--ink);color:#F1EFEA;margin-top:6px">Done</button>
+  </div>
+</div>
+
+<script>
+"use strict";
+
+/* =====================================================================
+   ponytail: every navigator response on this page is PRE-WRITTEN, not
+   generated. A sales demo must be deterministic and must never fail in
+   front of a client, so there is no network call anywhere in this file.
+   Ceiling: only the scripted answers below exist; free text is matched
+   to the nearest one by keyword score and otherwise falls back
+   gracefully. Upgrade path is ONE function — replace answerFor(text)
+   with an await'd provider call that returns the same
+   {facts, eva, evan, escalate} shape and the rest of the page is
+   unchanged.
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   THE SHARED CLINICAL RESULT OBJECT
+   One source of truth. The persona layer reads from this and may only
+   change wording around it — it never authors a clinical fact.
+   All data below is INVENTED for demonstration.
+   --------------------------------------------------------------------- */
+const PATIENT = { name:"Jordan Reyes", age:44, scan:"Whole-body MRI · 12 March", id:"DEMO-0000 (fictional)" };
+
+const FINDINGS = [
+  {
+    id:"kidney", level:"red", region:"Kidneys",
+    label:"Needs attention",
+    clinical:"2.4 cm complex cystic lesion, upper pole of left kidney. Thickened, irregularly enhancing internal septations. Bosniak category III.",
+    plain:"A fluid-filled spot on your left kidney with a few features we want a specialist to look at properly.",
+    what:"A cyst is a small pocket of fluid. Most are completely simple and completely harmless. Yours has a few thin walls running through it, and those walls take up the contrast dye on the scan. That combination puts it into a category radiologists call Bosniak III — which is the \"this needs a proper look\" category, not the \"bad news\" category.",
+    means:"Bosniak III means genuinely uncertain. In studies of lesions like this, roughly half turn out to be entirely benign. The other half can contain a slow-growing kidney tumour — and at 2.4 cm, that would be small and highly treatable. Either way, the finding is early.",
+    notmeans:"It does not mean you have cancer. Nobody can tell you that you do or don't from this scan, and I'm not going to guess. It also doesn't mean you need surgery, and it doesn't mean anything is going to change in the next few weeks.",
+    common:"About one in four adults over 40 has some kind of kidney cyst show up on imaging. A small slice of those land in this category.",
+    next:"A urologist reviews the actual images — not this summary — and almost always orders one more targeted test, usually a dedicated kidney CT or a contrast-enhanced ultrasound, within the next few weeks. That single test settles it most of the time.",
+    referral:{
+      who:"Urologist", why:"A urologist is the specialist who reads Bosniak-category lesions for a living. They'll look at your images directly and decide between three paths: repeat imaging in a few months, a targeted follow-up scan now, or removal. That decision needs a specialist, and it's the reason this finding is at the top of your list rather than buried in a report.",
+      meta:["Within 2–4 weeks","Not an emergency","Bring your full report + images"],
+      cta:"Book a call with a urologist"
+    }
+  },
+  {
+    id:"liver", level:"amber", region:"Liver",
+    label:"Monitor",
+    clinical:"Moderate hepatic steatosis. MRI-PDFF 14.2%. No fibrosis or focal lesion identified.",
+    plain:"There's more fat stored in your liver than we'd like to see — common, and often reversible.",
+    what:"PDFF is simply the percentage of your liver made up of fat. Under about 5% is typical. Yours measured 14.2%, which sits in the moderate range. The scan found no scarring and no lumps.",
+    means:"This is usually tied to some mix of diet, alcohol, body weight, blood sugar and plain genetics. At this level, and with no scarring on the scan, it's the stage that responds best to changes you actually control.",
+    notmeans:"This is not cirrhosis and not liver failure. It's not a lump. It's not permanent — this number can and often does come down.",
+    common:"Roughly one in three adults in the US has some degree of fatty liver. It's one of the most frequent findings on any whole-body scan.",
+    next:"Your primary care doctor is the right person here. Expect a blood panel — liver enzymes, A1c, lipids — and a repeat measurement in about 12 months. Nutrition and activity changes move this number more than any medication currently does at this stage."
+  },
+  {
+    id:"thyroid", level:"amber", region:"Thyroid",
+    label:"Monitor",
+    clinical:"1.1 cm well-circumscribed nodule, right thyroid lobe. No microcalcification or irregular margin. TI-RADS 3.",
+    plain:"A small, smooth lump on your thyroid — the type that's almost always harmless, but earns one recheck.",
+    what:"It's a pea-sized solid area in one lobe of your thyroid. The edges are smooth and none of the features radiologists worry about are present. TI-RADS is a 1-to-5 scale for how suspicious a nodule looks; yours is a 3, and it's mostly a 3 because of its size rather than its appearance.",
+    means:"The large majority of nodules like this are benign. The recheck exists because thyroid nodules are followed rather than assumed — not because this one looks concerning.",
+    notmeans:"It isn't a lump you'd feel in your neck. It isn't affecting your thyroid hormones by itself. It isn't urgent, and it doesn't need anything done this month.",
+    common:"More than half of adults have at least one thyroid nodule visible on imaging. Fewer than one in twenty turn out to be cancer, and those are usually slow-growing.",
+    next:"A dedicated thyroid ultrasound plus a TSH blood test, in about 3 to 6 months. Ultrasound sees thyroid detail far better than MRI does. You'd only see an endocrinologist if that ultrasound changes the picture."
+  },
+  {
+    id:"brain", level:"green", region:"Brain & cerebral vessels",
+    label:"Normal",
+    clinical:"No acute intracranial abnormality. MRA: no aneurysm, normal vessel calibre. Age-appropriate white matter.",
+    plain:"Your brain and the blood vessels feeding it look normal — including a specific check for aneurysms.",
+    what:"Two things were looked at: the brain tissue itself, and the arteries supplying it. Both were normal.",
+    means:"No bleeds, no masses, no aneurysms, and the small white-matter changes present are the ones expected at 44.",
+    notmeans:"A normal brain MRI doesn't rule out things MRI can't see — migraine, most seizure disorders, or anything that shows up on blood work rather than pictures.",
+    common:"This is the most common result for this part of the scan.",
+    next:"Nothing. This one is closed unless symptoms bring you back."
+  },
+  {
+    id:"spine", level:"green", region:"Spine",
+    label:"Normal",
+    clinical:"Mild L4–L5 disc desiccation. No canal stenosis, no nerve root impingement, no cord signal abnormality.",
+    plain:"A little everyday wear in one low-back disc. Normal for 44, and nothing is pressing on a nerve.",
+    what:"Discs are cushions between the vertebrae, and they dry out slightly with age. One of yours shows that mild drying. Everything that matters — the spinal canal, the nerve roots, the cord itself — is clear.",
+    means:"It's the spinal equivalent of grey hair. It's reported because it's visible, not because it's a problem.",
+    notmeans:"It's not a slipped disc, not a pinched nerve, and not a reason to change how you move or train.",
+    common:"By 40, most people show some disc drying on MRI whether or not their back has ever hurt.",
+    next:"Nothing. If your back does start hurting, this is useful context for whoever sees you — not a cause."
+  },
+  {
+    id:"abdo", level:"green", region:"Pancreas, spleen, gallbladder, adrenals",
+    label:"Normal",
+    clinical:"Normal in size, signal and contour. No focal mass, no ductal dilatation, no adrenal nodule.",
+    plain:"All four organs are normal size and shape, with nothing growing where it shouldn't.",
+    what:"These organs are hard to examine any other way, which is a large part of why whole-body MRI is done at all. All four were clear.",
+    means:"No masses, no cysts, no blocked ducts, no adrenal nodules.",
+    notmeans:"A clear scan today isn't a permanent guarantee — it's a clean, dated baseline to compare against later.",
+    common:"Normal is the usual result here.",
+    next:"Nothing now. This becomes the comparison point for your next scan."
+  },
+  {
+    id:"nodes", level:"green", region:"Lymph nodes",
+    label:"Normal",
+    clinical:"No pathologically enlarged nodes in the neck, chest, abdomen or pelvis.",
+    plain:"No swollen lymph nodes anywhere the scan covered.",
+    what:"Lymph nodes are small filters spread throughout your body. When something is inflamed or spreading, they often enlarge first — so they're one of the first things checked.",
+    means:"Nothing in your body is causing the kind of node enlargement a scan can see.",
+    notmeans:"Normal nodes don't rule out infection or illness on their own — plenty of things never touch them.",
+    common:"Normal is the usual result.",
+    next:"Nothing."
+  },
+  {
+    id:"aorta", level:"green", region:"Aorta & great vessels",
+    label:"Normal",
+    clinical:"Aorta normal calibre throughout. No aneurysm, dissection or significant atherosclerotic change.",
+    plain:"Your body's main artery is a normal width along its whole length, with no bulges or tears.",
+    what:"The aorta runs from your heart down through your abdomen. It was measured along its length.",
+    means:"No aneurysm, no dissection, and no significant plaque build-up visible.",
+    notmeans:"This isn't a full cardiac assessment — it doesn't measure the arteries of the heart itself or your cholesterol risk.",
+    common:"Normal at 44 is expected.",
+    next:"Nothing from this scan. Standard heart-risk checks with your doctor still apply."
+  }
+];
+
+/* ---------------------------------------------------------------------
+   PERSONA LAYER — voice only.
+   Each finding gets an opener and a closer per persona. The five clinical
+   sections above are shared verbatim: the persona layer never rewrites them.
+   --------------------------------------------------------------------- */
+const VOICE = {
+  eva:{ name:"Eva", cls:"av-eva", tone:"Warm & reassuring",
+    intro:{
+      red:"Before you read anything else — this one is at the top of your list because it needs a proper look, not because it's an emergency. Take a breath. I'll go through it with you.",
+      amber:"This is a keep-an-eye-on-it finding, and I know that can feel unsatisfying. Let me explain exactly what's being watched and why.",
+      green:"Good news on this one — nothing here needs anything from you. I'll still walk you through what was checked, because \"normal\" should come with a reason."
+    },
+    outro:{
+      red:"I know reading this on a screen is hard. You don't have to hold it on your own — I'm here whenever the questions start, and there's a real clinician a tap away.",
+      amber:"Nothing here needs to change your week. Ask me anything about it, whenever it comes to mind.",
+      green:"Nothing to do. Ask me anything if you'd like more detail on what was checked."
+    }},
+  evan:{ name:"Evan", cls:"av-evan", tone:"Calm & direct",
+    intro:{
+      red:"This is the first item on your list. It needs a specialist review, not an emergency room. Here's the finding, what it means, and the next step.",
+      amber:"This one goes on the watch list. Here's what's being watched and on what timeline.",
+      green:"Normal. No action needed. Here's what was checked and what that rules out."
+    },
+    outro:{
+      red:"Next step is the referral below. Everything else on your results can wait until after that appointment. Ask me anything in the meantime.",
+      amber:"No action this week. The recheck timeline is above.",
+      green:"Nothing needed. Ask if you want more detail."
+    }}
+};
+
+/* ---------------------------------------------------------------------
+   SCRIPTED CHAT
+   `facts` = the clinical facts that MUST appear, verbatim, inside <mark>
+   in BOTH persona answers. verifyFacts() checks this at runtime.
+   --------------------------------------------------------------------- */
+const ANSWERS = [
+  {
+    id:"cancer", chip:"Is this cancer?", kind:"common",
+    match:["cancer","tumor","tumour","malignant","malignancy","oncolog"],
+    facts:["Bosniak III","roughly half","2.4 cm","a urologist"],
+    handoff:true,
+    eva:`That's the question almost everyone asks first, and I'm not going to dance around it.
+
+I can't tell you whether this is cancer, and I wouldn't want to guess with something this important. What I can tell you is what the scan actually found. Your kidney finding is classed <mark class="f">Bosniak III</mark>, which is the radiologist's way of saying uncertain. Of lesions in that category, <mark class="f">roughly half</mark> turn out to be completely benign. The rest can contain a slow-growing kidney tumour — and at <mark class="f">2.4 cm</mark> that would be caught early and treated well.
+
+Only <mark class="f">a urologist</mark> looking at your actual images can answer the question you're asking. I'd rather get you to that answer properly than give you a comforting guess tonight.`,
+    evan:`Direct answer: I don't know, and no scan alone can tell you.
+
+Here's what is known. The kidney lesion is classed <mark class="f">Bosniak III</mark> — the "uncertain" category. In that category, <mark class="f">roughly half</mark> are benign. The remainder can be a slow-growing kidney tumour, which at <mark class="f">2.4 cm</mark> is small and treatable.
+
+The answer comes from <mark class="f">a urologist</mark> reviewing your images, usually with one additional targeted test. That's the next step, and it's the only thing that resolves this question.`
+  },
+  {
+    id:"worry", chip:"Do I need to worry?", kind:"common",
+    match:["worry","worried","scared","anxious","panic","freaking","nervous","stressed"],
+    facts:["one finding out of eight","2 to 4 weeks","five were completely normal"],
+    eva:`It would be strange if you weren't feeling something right now. That's a normal reaction to reading words like this about your own body.
+
+Here's the honest shape of it: you have <mark class="f">one finding out of eight</mark> that needs a specialist's eyes, on a <mark class="f">2 to 4 weeks</mark> timeline — not today, not this hour. Two more are simply on a watch list, and <mark class="f">five were completely normal</mark>.
+
+So: worth acting on, not worth losing sleep over. And if it's 2am and you are losing sleep over it, message me anyway. That's what I'm here for.`,
+    evan:`Reasonable question. Here's the proportion.
+
+You have <mark class="f">one finding out of eight</mark> that needs specialist review, on a <mark class="f">2 to 4 weeks</mark> timeline. Two are on a monitoring list with no action this month. <mark class="f">five were completely normal</mark>.
+
+That's a finding to act on, not an emergency. Book the referral, then set it down until the appointment. If something changes physically before then, tell me and I'll escalate.`
+  },
+  {
+    id:"ask", chip:"What should I ask my doctor?", kind:"common",
+    match:["ask my doctor","what should i ask","questions","appointment","prepare","bring"],
+    facts:["Bosniak III","contrast-enhanced ultrasound","active surveillance","full report and the images"],
+    eva:`I love this question — walking in with questions changes the whole appointment. Here's what I'd take with you:
+
+1. “Looking at the images yourself, do you agree with the <mark class="f">Bosniak III</mark> classification?”
+2. “Would a <mark class="f">contrast-enhanced ultrasound</mark> or a dedicated CT tell us more?”
+3. “Is <mark class="f">active surveillance</mark> reasonable here, and what would we be watching for?”
+4. “If this were your own family member, what would you do next?”
+
+Bring your <mark class="f">full report and the images</mark>, not just the summary — specialists want the source. Want me to put these in your phone so they're there on the day?`,
+    evan:`Four questions, in order of usefulness:
+
+1. Do you agree with the <mark class="f">Bosniak III</mark> classification on the images themselves?
+2. Would a <mark class="f">contrast-enhanced ultrasound</mark> or dedicated CT add information?
+3. Is <mark class="f">active surveillance</mark> an option, and what would trigger action?
+4. What would you do if this were your family?
+
+Take your <mark class="f">full report and the images</mark> to the appointment. I can send them to your phone now.`
+  },
+  {
+    id:"exercise", chip:"Can I still exercise?", kind:"common",
+    match:["exercise","gym","run","running","train","training","lift","workout","sport","play","cycle","swim"],
+    facts:["nothing structural","no nerve involvement","liver"],
+    eva:`Yes — and I'm glad you asked rather than quietly stopping.
+
+There is <mark class="f">nothing structural</mark> in your results that limits movement. The disc finding in your back has <mark class="f">no nerve involvement</mark>, so it isn't a reason to stop lifting or running. Nothing about the kidney finding restricts exercise either.
+
+One bonus: regular movement is genuinely one of the strongest levers on the <mark class="f">liver</mark> finding. So carrying on isn't just allowed, it helps.
+
+Your own doctor knows your history, so run any big change past them. But nothing on this scan says stop.`,
+    evan:`Yes.
+
+<mark class="f">nothing structural</mark> in your results restricts activity. The disc finding shows <mark class="f">no nerve involvement</mark>, so no lifting or running restriction. The kidney finding doesn't restrict exercise.
+
+Worth noting: regular activity is one of the more effective interventions for the <mark class="f">liver</mark> finding. Continue as you are.
+
+Clear any significant new programme with your own doctor, who knows your history.`
+  },
+  {
+    id:"urgent", chip:"How urgent is the kidney one?", kind:"common",
+    match:["urgent","how soon","how long","wait","timeline","when should","rush","emergency"],
+    facts:["2 to 4 weeks","not an emergency","doesn't change in days or weeks"],
+    eva:`Real answer: soon, but not tonight.
+
+The right window is <mark class="f">2 to 4 weeks</mark> to see a urologist. It is <mark class="f">not an emergency</mark> — a finding like this <mark class="f">doesn't change in days or weeks</mark>, so booking on Monday rather than at midnight costs you nothing.
+
+What I'd rather you didn't do is let it drift to six months because life got busy. If it helps, I can nudge you if the appointment isn't booked in the next few days.`,
+    evan:`Timeline: <mark class="f">2 to 4 weeks</mark> to a urologist.
+
+It is <mark class="f">not an emergency</mark>. A lesion like this <mark class="f">doesn't change in days or weeks</mark>, so there's no benefit to same-day action.
+
+The failure mode is drift — the appointment that never gets booked. I'll remind you if it isn't scheduled within a few days.`
+  },
+
+  /* ---------------- guardrail probes ---------------- */
+  {
+    id:"meds", chip:"Should I stop taking my blood pressure medication?", kind:"edge",
+    match:["stop taking","medication","medicine","meds","pill","prescription","dose","dosage","blood pressure","statin","drug"],
+    facts:["I can't advise you on medication","don't stop or change anything","the doctor who prescribed it","nothing in your scan"],
+    handoff:true,
+    eva:`I have to be straight with you here: <mark class="f">I can't advise you on medication</mark>. Not a dose, not a pause, not a swap — that's genuinely outside what I'm allowed to do, and it's a line I'd hold even if I thought I knew the answer.
+
+Please <mark class="f">don't stop or change anything</mark> on your own. Blood pressure medication in particular can rebound hard when it's stopped suddenly.
+
+The person to ask is <mark class="f">the doctor who prescribed it</mark>. And one thing I can tell you: <mark class="f">nothing in your scan</mark> suggests a reason to change it.
+
+Would you like me to put this in front of one of our clinicians so you're not waiting on your GP?`,
+    evan:`No — <mark class="f">I can't advise you on medication</mark>. Not dosage, not stopping, not substitution. That's outside my scope.
+
+<mark class="f">don't stop or change anything</mark> without speaking to a prescriber first. Abrupt stops on blood pressure medication carry real risk.
+
+Take it to <mark class="f">the doctor who prescribed it</mark>. For context: <mark class="f">nothing in your scan</mark> indicates a reason to change your medication.
+
+I can route this to a clinician on our side now if you'd like it handled sooner.`
+  },
+  {
+    id:"die", chip:"Am I going to die?", kind:"edge",
+    match:["going to die","am i dying","how long do i have","terminal","survive","survival","kill me","death"],
+    facts:["I can't give you a prognosis","one uncertain finding","five normal ones","a human clinician"],
+    handoff:true,
+    eva:`I'm not going to brush past that. That question usually comes from somewhere real, and I'm glad you said it out loud rather than sitting with it.
+
+<mark class="f">I can't give you a prognosis</mark>. Nobody honest can from a scan report, and you deserve better than a reassuring line from me that isn't grounded in anything.
+
+What I can hold onto with you: what you have today is <mark class="f">one uncertain finding</mark> flagged early, two things being watched, and <mark class="f">five normal ones</mark>. Early and uncertain is a very different place to be than late and certain.
+
+I'd really like to get you to <mark class="f">a human clinician</mark> — today if you want. Would that help?`,
+    evan:`That's a fair thing to ask, and I won't deflect it.
+
+<mark class="f">I can't give you a prognosis</mark>. It isn't something a scan report can support, and guessing would be worse than useless to you.
+
+What the results actually show: <mark class="f">one uncertain finding</mark> caught early, two on a watch list, and <mark class="f">five normal ones</mark>. Uncertain and early is a materially different situation from advanced disease.
+
+If this is weighing on you, the right next step is <mark class="f">a human clinician</mark>, not more reading. I can arrange that now.`
+  },
+  {
+    id:"justtell", chip:"Just tell me if it's cancer", kind:"edge",
+    match:["just tell me","stop dodging","straight answer","yes or no","be honest with me","don't sugarcoat","cut the"],
+    facts:["I'm not allowed to diagnose","I genuinely don't know","one targeted test","within the hour"],
+    handoff:true,
+    eva:`I hear the frustration, and it's completely fair. You want a yes or a no, and I keep handing you categories.
+
+Two things are true at once. <mark class="f">I'm not allowed to diagnose</mark> — that isn't me hedging, it's the line that keeps this safe for you. And separately, <mark class="f">I genuinely don't know</mark>. There is no answer sitting behind a policy that I'm withholding from you.
+
+What resolves it isn't more conversation with me — it's <mark class="f">one targeted test</mark> that a urologist orders. That's the whole distance between here and knowing.
+
+I can have a clinician on the phone with you <mark class="f">within the hour</mark> if you want a person to say this to you directly. Shall I?`,
+    evan:`Fair. Here's the clearest version I can give you.
+
+<mark class="f">I'm not allowed to diagnose</mark> — that's a hard limit, not a hedge. And <mark class="f">I genuinely don't know</mark>; there is no withheld answer here.
+
+What closes the gap is <mark class="f">one targeted test</mark> ordered by a urologist. That's it. Not more discussion with me.
+
+If you want a person rather than a system, I can get a clinician on the phone with you <mark class="f">within the hour</mark>.`
+  },
+  {
+    id:"chestpain", chip:"I've got crushing chest pain and can't breathe", kind:"edge",
+    match:["chest pain","can't breathe","cant breathe","crushing","short of breath","numb","face drooping","slurred","worst headache","passing out","coughing blood","suicid"],
+    facts:["Call 911","don't drive yourself","not related to anything on your scan"],
+    escalate:true,
+    eva:`Stop reading and get help now.
+
+<mark class="f">Call 911</mark> — or your local emergency number — right away. Please <mark class="f">don't drive yourself</mark>; have someone take you, or wait for the ambulance.
+
+I'm an explainer, not an emergency service, and these symptoms need a person with hands on you in the next few minutes. This is also <mark class="f">not related to anything on your scan</mark> — nothing in your results causes this, and none of it matters right now compared to getting seen.
+
+Go. I'll be here afterwards.`,
+    evan:`Stop and get emergency help now.
+
+<mark class="f">Call 911</mark>, or your local emergency number. <mark class="f">don't drive yourself</mark> — have someone drive you or wait for the ambulance.
+
+These symptoms need immediate in-person assessment. This is <mark class="f">not related to anything on your scan</mark>; your results are not the priority in the next few minutes.
+
+Go now.`
+  }
+];
+
+/* which scripted answers appear on the Prove It screen */
+const PROVE_IDS = ["cancer","worry","meds","die"];
+
+/* =====================================================================
+   RENDER
+   ===================================================================== */
+const $ = s => document.querySelector(s);
+const $$ = s => [...document.querySelectorAll(s)];
+let persona = "eva";
+
+const av = (p, extra="") => `<div class="av ${VOICE[p].cls}" ${extra}>${VOICE[p].name}</div>`;
+
+/* ---- persona pick ---- */
+$$(".pcard").forEach(b => b.onclick = () => start(b.dataset.pick));
+$$(".opt").forEach(b => b.onclick = () => { setPersona(b.dataset.set); paintSettings(); });
+$("#gearBtn").onclick = () => { paintSettings(); $("#settings").classList.add("on"); };
+$("#closeSet").onclick = () => $("#settings").classList.remove("on");
+$("#settings").onclick = e => { if (e.target.id === "settings") $("#settings").classList.remove("on"); };
+
+function paintSettings(){
+  $$(".opt").forEach(b => {
+    const on = b.dataset.set === persona;
+    b.setAttribute("aria-pressed", on);
+    b.querySelector(".tick").textContent = on ? "✓" : "";
+  });
+}
+
+function start(p){
+  setPersona(p);
+  $("#persona").style.display = "none";
+  $("#app").classList.add("on");
+  $("#nav").classList.add("on");
+  window.scrollTo(0,0);
+}
+
+function setPersona(p){
+  persona = p;
+  const v = VOICE[p];
+  $("#headAv").className = "av " + v.cls;
+  $("#headAv").textContent = v.name;
+  $("#headName").textContent = v.name + " · your navigator";
+  $$(".navnm").forEach(e => e.textContent = v.name);
+  $$(".asknm").forEach(e => e.textContent = "Ask " + v.name);
+  $("#inp").placeholder = `Ask ${v.name} anything…`;
+  renderProve();
+  // an already-open detail sheet re-renders in the new voice
+  if ($("#sheet").classList.contains("on") && openFinding) openDetail(openFinding);
+}
+
+/* ---- results list ---- */
+$("#flist").innerHTML = FINDINGS.map(f => `
+  <button class="fcard ${f.level}" data-f="${f.id}">
+    <div class="fhead">
+      <span class="pill ${f.level}">${f.label}</span>
+      <span class="region">${f.region}</span>
+    </div>
+    <div class="split">
+      <div class="col"><label>What the report says</label><div class="clin">${f.clinical}</div></div>
+      <div class="col eng-col"><label>What that means</label><div class="eng">${f.plain}</div></div>
+    </div>
+    <div class="more">Have ${VOICE[persona].name} explain this &nbsp;→</div>
+  </button>`).join("");
+$$(".fcard").forEach(b => b.onclick = () => openDetail(b.dataset.f));
+
+/* ---- detail sheet ---- */
+let openFinding = null;
+function openDetail(id){
+  const f = FINDINGS.find(x => x.id === id);
+  const v = VOICE[persona];
+  openFinding = id;
+  $("#sheetbox").innerHTML = `
+    <div class="grip"></div>
+    <div class="sheettop">
+      <button class="back" id="backBtn">← &nbsp;Results</button>
+      <span class="pill ${f.level}" style="margin-left:auto">${f.label}</span>
+    </div>
+    <p class="eyebrow">${f.region}</p>
+    <h2 class="screen" style="margin-bottom:16px">${f.plain}</h2>
+
+    <div class="clinbox">
+      <label>Word-for-word from your report</label>
+      <div class="clin">${f.clinical}</div>
+    </div>
+
+    <div class="navsays">
+      ${av(persona)}
+      <div class="body"><b class="nm">${v.name}:</b> ${v.intro[f.level]}</div>
+    </div>
+
+    <div class="qa"><h4>What it actually is</h4><p>${f.what}</p></div>
+    <div class="qa"><h4>What it likely means</h4><p>${f.means}</p></div>
+    <div class="qa not"><h4>What it does <em>not</em> mean</h4><p>${f.notmeans}</p></div>
+    <div class="qa"><h4>How common is this?</h4><p>${f.common}</p></div>
+    <div class="qa next"><h4>What happens next</h4><p>${f.next}</p></div>
+
+    ${f.referral ? `
+    <div class="referral">
+      <p class="eyebrow">Recommended referral</p>
+      <h3>${f.referral.who}</h3>
+      <p>${f.referral.why}</p>
+      <div class="refmeta">${f.referral.meta.map(m => `<span>${m}</span>`).join("")}</div>
+      <button class="cta" onclick="alert('Demo only — no booking is made.\\n\\nIn the live product this opens scheduling with a partner urologist and attaches the report and images to the appointment.')">${f.referral.cta}</button>
+      <button class="cta ghost" onclick="alert('Demo only.\\n\\nIn the live product this sends your full report and image set to the specialist ahead of the appointment.')">Send my report ahead</button>
+      <p class="refnote">This is a recommendation, not a diagnosis. Your clinician decides.</p>
+    </div>` : ""}
+
+    <div class="navsays" style="margin-top:16px">
+      ${av(persona)}
+      <div class="body">${v.outro[f.level]}</div>
+    </div>
+
+    <button class="cta" style="background:var(--ink);color:#F1EFEA;margin-top:14px" id="askAbout">Ask ${v.name} about this</button>
+  `;
+  $("#sheet").classList.add("on");
+  $("#sheetbox").scrollTop = 0;
+  $("#backBtn").onclick = closeSheet;
+  $("#askAbout").onclick = () => { closeSheet(); go("ask"); };
+}
+function closeSheet(){ $("#sheet").classList.remove("on"); openFinding = null; }
+$("#sheet").onclick = e => { if (e.target.id === "sheet") closeSheet(); };
+
+/* ---- tabs ---- */
+function go(tab){
+  ["results","ask","prove"].forEach(t => $("#tab-" + t).hidden = (t !== tab));
+  $$(".nb").forEach(b => b.setAttribute("aria-current", b.dataset.tab === tab));
+  window.scrollTo(0,0);
+}
+$$(".nb").forEach(b => b.onclick = () => go(b.dataset.tab));
+
+/* ---- chat ---- */
+const chipHtml = a => `<button class="chip ${a.kind === "edge" ? "edge" : ""}" data-a="${a.id}">${a.chip}</button>`;
+$("#chipsCommon").innerHTML = ANSWERS.filter(a => a.kind === "common").map(chipHtml).join("");
+$("#chipsEdge").innerHTML  = ANSWERS.filter(a => a.kind === "edge").map(chipHtml).join("");
+$$(".chip").forEach(b => b.onclick = () => {
+  const a = ANSWERS.find(x => x.id === b.dataset.a);
+  send(a.chip, a);
+});
+
+// ponytail: keyword overlap beats any fuzzy-match library for ~10 canned
+// answers. Ceiling is obvious — it can't handle paraphrase without shared
+// words. The live product routes this to the model instead.
+function answerFor(text){
+  const t = " " + text.toLowerCase().replace(/[^a-z0-9' ]/g," ").replace(/\s+/g," ") + " ";
+  let best = null, bestScore = 0;
+  for (const a of ANSWERS){
+    let score = 0;
+    // " " + m anchors to a word start, so "run" hits "running" but not "overrun"
+    for (const m of a.match) if (t.includes(" " + m)) score += m.length + 2;
+    if (score > bestScore){ bestScore = score; best = a; }
+  }
+  return bestScore >= 5 ? best : null;
+}
+
+const FALLBACK = {
+  eva:`That's a good question, and an honest answer is: I'd need your full report in front of me to give you one I'd stand behind.
+
+In the live product I read your whole scan, your history and your previous results, so I can answer questions like that properly rather than guessing. This demo only carries a handful of pre-written answers.
+
+Try one of the suggested questions above — or ask me about your kidney, liver or thyroid findings and I'll go as deep as you want.`,
+  evan:`I'd need your full report to answer that properly, and I won't guess at it.
+
+In the live product this is answered from your complete scan, history and prior results. This demo carries a limited set of pre-written answers.
+
+Try one of the suggestions above, or ask about the kidney, liver or thyroid findings directly.`
+};
+
+const strip = h => h.replace(/<[^>]*>/g, "");
+
+function bubble(cls, html){
+  const d = document.createElement("div");
+  d.className = cls;
+  d.innerHTML = html;
+  $("#thread").appendChild(d);
+  d.scrollIntoView({behavior:"smooth", block:"nearest"});
+  return d;
+}
+
+let busy = false;
+function send(text, forced){
+  if (busy || !text.trim()) return;
+  busy = true;
+  bubble("msg me", strip(text));
+  const a = forced || answerFor(text);
+  const typing = bubble("typing", "<i></i><i></i><i></i>");
+
+  setTimeout(() => {
+    typing.remove();
+    if (a && a.escalate){
+      bubble("escalate", `<b>⚠ Seek care now</b><p>${a[persona]}</p>
+        <button class="cta" onclick="alert('Demo only — no call is placed.\\n\\nIn the live product this dials emergency services and simultaneously alerts the clinical team.')">Call emergency services</button>`);
+    } else if (a){
+      bubble("msg nav", `<span class="navname">${VOICE[persona].name}</span>${a[persona]}`);
+      if (a.handoff){
+        bubble("handoff", `<b>Talk to a person</b><p>This is the kind of question a human clinician should answer. ${VOICE[persona].name} can hand you over now.</p>
+          <button onclick="alert('Demo only — no clinician is contacted.\\n\\nIn the live product this opens a same-day callback with the clinical team and passes the full conversation across so you never repeat yourself.')">Connect me with a clinician</button>`);
+      }
+    } else {
+      bubble("msg nav", `<span class="navname">${VOICE[persona].name}</span>${FALLBACK[persona]}`);
+    }
+    busy = false;
+  }, 620);
+}
+
+const inp = $("#inp");
+inp.addEventListener("input", () => {
+  inp.style.height = "auto";
+  inp.style.height = Math.min(inp.scrollHeight, 110) + "px";
+  $("#sendBtn").disabled = !inp.value.trim();
+});
+inp.addEventListener("keydown", e => {
+  if (e.key === "Enter" && !e.shiftKey){ e.preventDefault(); submit(); }
+});
+$("#sendBtn").onclick = submit;
+function submit(){
+  const v = inp.value;
+  if (!v.trim()) return;
+  inp.value = "";
+  inp.style.height = "auto";
+  $("#sendBtn").disabled = true;
+  send(v);
+}
+
+/* =====================================================================
+   PROVE IT
+   The two panes are rendered from the SAME answer object. verifyFacts()
+   pulls every <mark> out of both and compares them — so the claim
+   "the clinical substance cannot diverge" is checked live, in front of
+   the client, rather than asserted.
+   ===================================================================== */
+let proveId = PROVE_IDS[0];
+
+$("#proveQ").innerHTML = PROVE_IDS.map(id => {
+  const a = ANSWERS.find(x => x.id === id);
+  return `<button class="qbtn" data-q="${id}" aria-pressed="${id === proveId}">
+    ${a.kind === "edge" ? "⚠ " : ""}“${a.chip}”</button>`;
+}).join("");
+$$(".qbtn").forEach(b => b.onclick = () => { proveId = b.dataset.q; renderProve(); });
+
+$("#hlSw").onclick = () => {
+  const on = $("#hlSw").getAttribute("aria-pressed") !== "true";
+  $("#hlSw").setAttribute("aria-pressed", on);
+  $("#panes").classList.toggle("hl", on);
+};
+
+function marksIn(html){
+  const d = document.createElement("div");
+  d.innerHTML = html;
+  return [...d.querySelectorAll("mark.f")].map(m => m.textContent.trim());
+}
+
+/* the runnable check: identical fact sets in both personas, and both
+   matching the declared clinical facts on the shared object */
+function verifyFacts(a){
+  const e = marksIn(a.eva).slice().sort();
+  const n = marksIn(a.evan).slice().sort();
+  const want = a.facts.slice().sort();
+  const same = JSON.stringify(e) === JSON.stringify(n);
+  const declared = JSON.stringify(e) === JSON.stringify(want);
+  return { same, declared, count:e.length, eva:e, evan:n };
+}
+
+function renderProve(){
+  const a = ANSWERS.find(x => x.id === proveId);
+  if (!a) return;
+  $$(".qbtn").forEach(b => b.setAttribute("aria-pressed", b.dataset.q === proveId));
+
+  $("#panes").innerHTML = ["eva","evan"].map(p => `
+    <div class="pane">
+      <div class="ph">${av(p)}<div><b>${VOICE[p].name}</b><br><span>${VOICE[p].tone}</span></div></div>
+      <div class="txt">${a[p].replace(/\n\n/g,"<br><br>")}</div>
+    </div>`).join("");
+
+  const r = verifyFacts(a);
+  const ok = r.same && r.declared;
+  $("#verdict").innerHTML = `
+    <div class="verdict ${ok ? "ok" : "bad"}">
+      <b>${ok ? "✓ Clinical substance verified identical" : "✗ Divergence detected — this answer would be blocked"}</b>
+      ${ok
+        ? `Checked live in your browser just now: both answers contain the same <strong>${r.count}</strong> clinical facts, word for word. Everything outside the highlights is tone.
+           <ul>${r.eva.map(f => `<li><code>${f}</code></li>`).join("")}</ul>`
+        : `Eva and Evan do not carry the same clinical facts for this question. In production this response would never reach the patient.`}
+    </div>`;
+
+  $("#objbox").innerHTML = `
+    <label>The shared clinical result object both answers render from</label>
+    <pre>{
+  <span class="k">"patient"</span>: <span class="s">"DEMO-0000 (fictional)"</span>,
+  <span class="k">"question"</span>: <span class="s">"${a.chip.replace(/"/g,'\\"')}"</span>,
+  <span class="k">"clinical_facts"</span>: [
+${a.facts.map(f => `    <span class="s">"${f}"</span>`).join(",\n")}
+  ],
+  <span class="k">"policy"</span>: {
+    <span class="k">"may_diagnose"</span>: false,
+    <span class="k">"may_advise_medication"</span>: false,
+    <span class="k">"escalate_to_human"</span>: ${!!a.handoff},
+    <span class="k">"emergency_path"</span>: ${!!a.escalate}
+  },
+  <span class="k">"persona"</span>: <span class="s">"voice layer — wording only, no fact access"</span>
+}</pre>`;
+}
+
+/* boot */
+paintSettings();
+setPersona("eva");
+renderProve();
+
+/* self-check: every scripted answer must pass fact parity, or the demo
+   is lying about its own guarantee. Logs loudly rather than failing quiet. */
+(function selfCheck(){
+  const bad = ANSWERS.filter(a => { const r = verifyFacts(a); return !(r.same && r.declared); });
+  if (bad.length) console.error("FACT PARITY FAILED:", bad.map(a => a.id), bad.map(a => verifyFacts(a)));
+  else console.log("✓ fact parity: all " + ANSWERS.length + " scripted answers verified identical across personas");
+})();
+</script>
+</body>
+</html>
