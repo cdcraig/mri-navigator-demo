@@ -125,6 +125,9 @@
   .pill.amber{background:var(--amber-soft);color:var(--amber)}
   .pill.green{background:var(--green-soft);color:var(--green)}
   .region{font-size:12.5px;color:var(--muted);font-weight:600;letter-spacing:.02em}
+  .said{font-size:12.5px;line-height:1.5;color:var(--ink-2);margin:-4px 0 11px}
+  .said b{font-weight:700}
+  .said .q{font-family:var(--mono);font-size:11.5px;color:var(--muted);display:block;margin-top:3px}
   .split{display:grid;gap:13px;grid-template-columns:1fr}
   @media(min-width:560px){.split{grid-template-columns:1fr 1fr;gap:18px}
     .col+.col{border-left:1px dashed var(--line);padding-left:18px}}
@@ -181,6 +184,49 @@
   .cta:active{filter:brightness(.92)}
   .cta.ghost{background:transparent;border:1px solid rgba(255,255,255,.25);color:#F1EFEA;margin-top:9px;font-weight:600}
   .refnote{font-size:12.5px;color:#9DB0A8;margin-top:12px;text-align:center}
+
+  /* ---------- clinician release gate + source citations ---------- */
+  .relbar{display:flex;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);
+    border-left:3px solid var(--accent);border-radius:14px;padding:12px 14px;margin-bottom:18px}
+  .relbar.held{border-left-color:var(--amber);background:var(--amber-soft);border-color:#EEDCC0}
+  .relbar .rl{flex:1;min-width:0}
+  .relbar b{display:block;font-size:13.5px;margin-bottom:3px}
+  .relbar p{font-size:12.5px;color:var(--ink-2);line-height:1.5}
+  .relbtn{font-size:11.5px;font-weight:700;letter-spacing:.02em;color:var(--ink-2);border:1px solid var(--line);
+    background:var(--card);border-radius:999px;padding:7px 12px;flex:none;max-width:112px;line-height:1.25}
+  .relbtn:active{background:var(--paper)}
+  .hold{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:22px 20px;box-shadow:var(--shadow)}
+  .hold h3{font-size:21px;margin-bottom:10px}
+  .hold p{font-size:14.5px;color:var(--ink-2);line-height:1.6;margin-bottom:12px}
+  .hold .why{font-size:12.5px;color:var(--muted);border-top:1px solid var(--line);
+    padding-top:13px;margin:0;line-height:1.55}
+  .hold .why b{color:var(--ink-2)}
+
+  .cites{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px;display:flex;
+    flex-direction:column;gap:7px}
+  .cites label{font-size:9.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700}
+  .cite{font-size:12px;color:var(--ink-2);line-height:1.4;display:block}
+  .cite i{font-style:normal;color:var(--green);font-weight:700;margin-right:5px}
+  .cite em{display:block;font-style:normal;color:var(--muted);font-size:11px;margin-left:16px}
+  .referral .cites{border-top-color:rgba(255,255,255,.18)}
+  .referral .cites label{color:#8FD3BC}
+  .referral .cite{color:#C9D6D0}
+  .referral .cite i{color:#8FD3BC}
+  .referral .cite em{color:#9DB0A8}
+
+  .withheld{background:var(--amber-soft);border:1px solid #EEDCC0;border-radius:16px;
+    padding:15px 16px;margin-bottom:10px}
+  .withheld h4{font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--amber);
+    font-weight:700;margin-bottom:7px}
+  .withheld p{font-size:14px;line-height:1.55;color:var(--ink-2);margin-bottom:8px}
+  .withheld .stillsafe{font-size:12.5px;color:var(--muted);margin-bottom:0}
+
+  .gatemsg{align-self:flex-start;max-width:88%;background:var(--amber-soft);border:1px solid #EEDCC0;
+    border-radius:16px;padding:13px 15px}
+  .gatemsg b{display:block;font-size:13.5px;color:var(--amber);margin-bottom:4px}
+  .gatemsg p{font-size:13.5px;color:var(--ink-2);line-height:1.5;margin-bottom:10px}
+  .gatemsg button{background:var(--amber);color:#fff;font-size:13.5px;font-weight:650;padding:9px 16px;border-radius:10px}
 
   /* ---------- chat ---------- */
   .chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
@@ -464,13 +510,29 @@
     <!-- RESULTS -->
     <section class="tabbody" id="tab-results">
       <h2 class="screen">Your scan results</h2>
-      <p class="sub">Eight areas reviewed. Ranked by what needs your attention first.</p>
-      <div class="summary">
-        <div class="sbox r"><b>1</b><span>Needs attention</span></div>
-        <div class="sbox a"><b>2</b><span>Monitor</span></div>
-        <div class="sbox g"><b>5</b><span>Normal</span></div>
+      <p class="sub">Eight areas reviewed. Ordered by the urgency your radiologist stated — not by a score we calculated.</p>
+      <div id="relbanner"></div>
+      <div id="reslist">
+        <div class="summary">
+          <div class="sbox r"><b>1</b><span>Needs attention</span></div>
+          <div class="sbox a"><b>2</b><span>Monitor</span></div>
+          <div class="sbox g"><b>5</b><span>Normal</span></div>
+        </div>
+        <div class="flist" id="flist"></div>
       </div>
-      <div class="flist" id="flist"></div>
+      <div class="hold" id="reshold" hidden>
+        <h3>Your results are with your radiologist</h3>
+        <p>Your scan has been read and your plain-language version is drafted. It is now with
+        <b id="holdWho"></b> for review. Until they release it, no urgency is shown, nothing is
+        recommended, and no referral is shown to you.</p>
+        <p>You'll be notified the moment it's released — usually the same working day. If anything
+        feels urgent before then, your navigator will still put you straight through to a person.</p>
+        <p class="why"><b>Why the wait exists.</b> How urgent each finding is, and which specialist
+        you should see, are clinical decisions. Your radiologist makes them, we surface their words
+        and the guideline-cited next step, and they review the wording the navigator will use before
+        it reaches you. The software never rates your findings itself — its job is to draft and
+        explain, not to decide, and not to release.</p>
+      </div>
       <footer>
         Illustrative demo built for evaluation purposes. Jordan Reyes is a fictional person and every finding, measurement and report phrase on this page is invented. Nothing here is medical advice.
       </footer>
@@ -561,14 +623,22 @@
             <text class="r" x="296" y="100">idle</text>
           </g>
           <g class="fn dim" id="fn-risk">
-            <rect class="bx" x="530" y="40" width="216" height="76" rx="11"/>
-            <text class="k" x="544" y="62">CLINICAL RULES · NOT THE MODEL</text>
-            <text class="t" x="544" y="82">Risk ranking</text>
-            <text class="r" x="544" y="100">idle</text>
+            <rect class="bx" x="520" y="40" width="210" height="76" rx="11"/>
+            <text class="k" x="534" y="62">READ FROM REPORT · NOT SCORED</text>
+            <text class="t" x="534" y="82">Urgency + next step</text>
+            <text class="r" x="534" y="100">idle</text>
+          </g>
+          <g class="fn dim" id="fn-hcp">
+            <rect class="bx" x="774" y="40" width="230" height="76" rx="11"/>
+            <text class="k" x="788" y="62">HUMAN SIGN-OFF · NOT THE MODEL</text>
+            <text class="t" x="788" y="82">Clinician release gate</text>
+            <text class="r" x="788" y="100">idle</text>
+            <text class="gtag" x="788" y="34">▼ PATIENT SEES NOTHING UNTIL THIS PASSES</text>
           </g>
           <path class="lk" id="lk-re" d="M234 78 H276"/>
-          <path class="lk" id="lk-er" d="M482 78 H524"/>
-          <path class="lk" id="lk-rs" d="M638 120 V188 H600 V298"/>
+          <path class="lk" id="lk-er" d="M482 78 H514"/>
+          <path class="lk" id="lk-rh" d="M734 78 H768"/>
+          <path class="lk" id="lk-rs" d="M889 120 V180 H600 V298"/>
 
           <!-- message lane -->
           <g class="fn dim" id="fn-msg">
@@ -672,8 +742,28 @@
           <button class="sbtn amb" id="fInject" aria-pressed="false">⚠ Force the model to invent a claim</button>
           <button class="sbtn" id="fReplay">↻ Replay last message</button>
         </div>
+        <div class="sysctl">
+          <span class="lbl">Clinician gate &amp; source validator</span>
+          <button class="sbtn amb" id="fHold" aria-pressed="false">⏸ Hold clinician release</button>
+          <button class="sbtn amb" id="fBreakSrc" aria-pressed="false">⚠ Break a cited source</button>
+        </div>
 
         <div class="syslog" id="fLog"></div>
+      </div>
+
+      <div class="sysnote" style="margin-bottom:12px">
+        <b>Why a human sits in the middle of the diagram.</b> FDA's revised clinical-decision-support
+        guidance (29 January 2026) is explicit: software that ranks findings and recommends a referral
+        <b>directly to a patient</b> is a regulated medical device. The same draft, handed to a licensed
+        clinician who reviews, revises and releases it, is not. So the release gate above is a hard
+        edge in the read path, not a policy note: until a named clinician signs off, the patient sees
+        no urgency, no referral, and the model is never asked about the findings at all. Note what the
+        second node does <b>not</b> do — it computes no risk score of its own. It reads the urgency
+        the radiologist already stated and attaches the guideline-cited next step. An urgency we
+        calculated would be device functionality; surfacing theirs is not. The one thing
+        that is never gated is the emergency path — a compliance check must never sit in front of
+        safety. Alongside it, the output validator withholds any recommendation whose cited source
+        does not resolve and verify. Withheld, not softened: no source, no recommendation.
       </div>
 
       <div class="sysnote">
@@ -746,10 +836,69 @@
    --------------------------------------------------------------------- */
 const PATIENT = { name:"Jordan Reyes", age:44, scan:"Whole-body MRI · 12 March", id:"DEMO-0000 (fictional)" };
 
+/* ---------------------------------------------------------------------
+   HCP-IN-THE-LOOP RELEASE GATE
+   FDA's revised CDS guidance (29 Jan 2026) is explicit: software that
+   ranks findings and recommends a referral straight to a patient is a
+   regulated device. The identical output, drafted for a licensed
+   clinician who reviews, revises and releases it, is not. So the
+   stated urgency and every referral are unreachable by the patient until a
+   named clinician releases them. The gate is code on the read path —
+   not a policy, not a prompt, and not something the model can route
+   around. Flip it in the demo and watch the patient's screen change.
+   --------------------------------------------------------------------- */
+const RELEASE = {
+  state:"released",                        // "released" | "pending"
+  by:"Dr Alina Whitfield",
+  role:"Consultant radiologist (fictional)",
+  at:"13 March, 09:12",
+  edits:2,
+  note:"Stated urgency confirmed as written. Kidney explainer reworded — “needs a proper look”, not “abnormal”. Referral window confirmed at 2–4 weeks."
+};
+const releaseGate = () => ({ released: RELEASE.state === "released", by:RELEASE.by, at:RELEASE.at });
+
+/* ---------------------------------------------------------------------
+   SOURCE REGISTRY
+   Every discretionary recommendation — anything telling the patient to
+   DO something — cites entries here. A recommendation whose sources
+   don't resolve, or resolve unverified, is withheld rather than
+   softened: FDA's own carve-back. `verified` is what an ingest job
+   sets when it has checked the citation actually exists and says what
+   we claim it says.
+   --------------------------------------------------------------------- */
+const SOURCES = {
+  "rad-impression": { label:"Reporting radiologist's stated recommendation",
+                      where:"Signed report · Impression · 12 Mar", verified:true },
+  "bosniak-2019":   { label:"Bosniak classification, version 2019",
+                      where:"Silverman et al., Radiology 2019;292:475–488", verified:true },
+  "acr-tirads-2017":{ label:"ACR TI-RADS white paper",
+                      where:"J Am Coll Radiol 2017;14(5):587–595", verified:true },
+  "aasld-2023":     { label:"AASLD steatotic liver disease practice guidance",
+                      where:"Hepatology 2023;77(5):1797–1835", verified:true }
+};
+
+/* ---------------------------------------------------------------------
+   URGENCY IS READ, NEVER COMPUTED.
+   There is no EVH risk score anywhere in this product. Each finding
+   carries the urgency the reporting radiologist stated in the signed
+   report, word for word, and that term is the only thing that decides
+   the colour and the order of the list. The rules engine contributes
+   one thing on top: the guideline-cited next step and the specialty
+   that usually handles it. FDA's revised CDS guidance (29 Jan 2026)
+   treats a score we calculate as device functionality; surfacing the
+   radiologist's own urgency plus a cited next step is expressly not.
+   --------------------------------------------------------------------- */
+const STATED_URGENCY = {
+  prompt:  { rank:2, level:"red",   label:"Needs attention", said:"prompt referral" },
+  routine: { rank:1, level:"amber", label:"Monitor",         said:"routine follow-up" },
+  none:    { rank:0, level:"green", label:"Normal",          said:"no follow-up needed" }
+};
+
 const FINDINGS = [
   {
-    id:"kidney", level:"red", region:"Kidneys",
-    label:"Needs attention",
+    id:"kidney", region:"Kidneys",
+    stated:{ urgency:"prompt", src:["rad-impression"],
+      quote:"Bosniak III cystic lesion, left upper pole. Urology referral advised within 2–4 weeks. Not urgent." },
     clinical:"2.4 cm complex cystic lesion, upper pole of left kidney. Thickened, irregularly enhancing internal septations. Bosniak category III.",
     plain:"A fluid-filled spot on your left kidney with a few features we want a specialist to look at properly.",
     what:"A cyst is a small pocket of fluid. Most are completely simple and completely harmless. Yours has a few thin walls running through it, and those walls take up the contrast dye on the scan. That combination puts it into a category radiologists call Bosniak III — which is the \"this needs a proper look\" category, not the \"bad news\" category.",
@@ -757,90 +906,118 @@ const FINDINGS = [
     notmeans:"It does not mean you have cancer. Nobody can tell you that you do or don't from this scan, and I'm not going to guess. It also doesn't mean you need surgery, and it doesn't mean anything is going to change in the next few weeks.",
     common:"About one in four adults over 40 has some kind of kidney cyst show up on imaging. A small slice of those land in this category.",
     next:"A urologist reviews the actual images — not this summary — and almost always orders one more targeted test, usually a dedicated kidney CT or a contrast-enhanced ultrasound, within the next few weeks. That single test settles it most of the time.",
+    nextSrc:["rad-impression","bosniak-2019"],
     referral:{
+      src:["rad-impression","bosniak-2019"],
       who:"Urologist", why:"A urologist is the specialist who reads Bosniak-category lesions for a living. They'll look at your images directly and decide between three paths: repeat imaging in a few months, a targeted follow-up scan now, or removal. That decision needs a specialist, and it's the reason this finding is at the top of your list rather than buried in a report.",
       meta:["Within 2–4 weeks","Not an emergency","Bring your full report + images"],
       cta:"Book a call with a urologist"
     }
   },
   {
-    id:"liver", level:"amber", region:"Liver",
-    label:"Monitor",
+    id:"liver", region:"Liver",
+    stated:{ urgency:"routine", src:["rad-impression"],
+      quote:"Moderate hepatic steatosis. Correlate with liver enzymes and metabolic risk factors; repeat assessment in 12 months." },
     clinical:"Moderate hepatic steatosis. MRI-PDFF 14.2%. No fibrosis or focal lesion identified.",
     plain:"There's more fat stored in your liver than we'd like to see — common, and often reversible.",
     what:"PDFF is simply the percentage of your liver made up of fat. Under about 5% is typical. Yours measured 14.2%, which sits in the moderate range. The scan found no scarring and no lumps.",
     means:"This is usually tied to some mix of diet, alcohol, body weight, blood sugar and plain genetics. At this level, and with no scarring on the scan, it's the stage that responds best to changes you actually control.",
     notmeans:"This is not cirrhosis and not liver failure. It's not a lump. It's not permanent — this number can and often does come down.",
     common:"Roughly one in three adults in the US has some degree of fatty liver. It's one of the most frequent findings on any whole-body scan.",
-    next:"Your primary care doctor is the right person here. Expect a blood panel — liver enzymes, A1c, lipids — and a repeat measurement in about 12 months. Nutrition and activity changes move this number more than any medication currently does at this stage."
+    next:"Your primary care doctor is the right person here. Expect a blood panel — liver enzymes, A1c, lipids — and a repeat measurement in about 12 months. Nutrition and activity changes move this number more than any medication currently does at this stage.",
+    nextSrc:["rad-impression","aasld-2023"]
   },
   {
-    id:"thyroid", level:"amber", region:"Thyroid",
-    label:"Monitor",
+    id:"thyroid", region:"Thyroid",
+    stated:{ urgency:"routine", src:["rad-impression"],
+      quote:"TI-RADS 3 nodule, right lobe. Dedicated thyroid ultrasound in 3–6 months." },
     clinical:"1.1 cm well-circumscribed nodule, right thyroid lobe. No microcalcification or irregular margin. TI-RADS 3.",
     plain:"A small, smooth lump on your thyroid — the type that's almost always harmless, but earns one recheck.",
     what:"It's a pea-sized solid area in one lobe of your thyroid. The edges are smooth and none of the features radiologists worry about are present. TI-RADS is a 1-to-5 scale for how suspicious a nodule looks; yours is a 3, and it's mostly a 3 because of its size rather than its appearance.",
     means:"The large majority of nodules like this are benign. The recheck exists because thyroid nodules are followed rather than assumed — not because this one looks concerning.",
     notmeans:"It isn't a lump you'd feel in your neck. It isn't affecting your thyroid hormones by itself. It isn't urgent, and it doesn't need anything done this month.",
     common:"More than half of adults have at least one thyroid nodule visible on imaging. Fewer than one in twenty turn out to be cancer, and those are usually slow-growing.",
-    next:"A dedicated thyroid ultrasound plus a TSH blood test, in about 3 to 6 months. Ultrasound sees thyroid detail far better than MRI does. You'd only see an endocrinologist if that ultrasound changes the picture."
+    next:"A dedicated thyroid ultrasound plus a TSH blood test, in about 3 to 6 months. Ultrasound sees thyroid detail far better than MRI does. You'd only see an endocrinologist if that ultrasound changes the picture.",
+    nextSrc:["rad-impression","acr-tirads-2017"]
   },
   {
-    id:"brain", level:"green", region:"Brain & cerebral vessels",
-    label:"Normal",
+    id:"brain", region:"Brain & cerebral vessels",
+    stated:{ urgency:"none", src:["rad-impression"],
+      quote:"No acute intracranial abnormality. No follow-up imaging required." },
     clinical:"No acute intracranial abnormality. MRA: no aneurysm, normal vessel calibre. Age-appropriate white matter.",
     plain:"Your brain and the blood vessels feeding it look normal — including a specific check for aneurysms.",
     what:"Two things were looked at: the brain tissue itself, and the arteries supplying it. Both were normal.",
     means:"No bleeds, no masses, no aneurysms, and the small white-matter changes present are the ones expected at 44.",
     notmeans:"A normal brain MRI doesn't rule out things MRI can't see — migraine, most seizure disorders, or anything that shows up on blood work rather than pictures.",
     common:"This is the most common result for this part of the scan.",
-    next:"Nothing. This one is closed unless symptoms bring you back."
+    next:"Nothing. This one is closed unless symptoms bring you back.",
+    nextSrc:["rad-impression"]
   },
   {
-    id:"spine", level:"green", region:"Spine",
-    label:"Normal",
+    id:"spine", region:"Spine",
+    stated:{ urgency:"none", src:["rad-impression"],
+      quote:"Age-appropriate degenerative change only. No follow-up required." },
     clinical:"Mild L4–L5 disc desiccation. No canal stenosis, no nerve root impingement, no cord signal abnormality.",
     plain:"A little everyday wear in one low-back disc. Normal for 44, and nothing is pressing on a nerve.",
     what:"Discs are cushions between the vertebrae, and they dry out slightly with age. One of yours shows that mild drying. Everything that matters — the spinal canal, the nerve roots, the cord itself — is clear.",
     means:"It's the spinal equivalent of grey hair. It's reported because it's visible, not because it's a problem.",
     notmeans:"It's not a slipped disc, not a pinched nerve, and not a reason to change how you move or train.",
     common:"By 40, most people show some disc drying on MRI whether or not their back has ever hurt.",
-    next:"Nothing. If your back does start hurting, this is useful context for whoever sees you — not a cause."
+    next:"Nothing. If your back does start hurting, this is useful context for whoever sees you — not a cause.",
+    nextSrc:["rad-impression"]
   },
   {
-    id:"abdo", level:"green", region:"Pancreas, spleen, gallbladder, adrenals",
-    label:"Normal",
+    id:"abdo", region:"Pancreas, spleen, gallbladder, adrenals",
+    stated:{ urgency:"none", src:["rad-impression"],
+      quote:"Unremarkable. No follow-up required." },
     clinical:"Normal in size, signal and contour. No focal mass, no ductal dilatation, no adrenal nodule.",
     plain:"All four organs are normal size and shape, with nothing growing where it shouldn't.",
     what:"These organs are hard to examine any other way, which is a large part of why whole-body MRI is done at all. All four were clear.",
     means:"No masses, no cysts, no blocked ducts, no adrenal nodules.",
     notmeans:"A clear scan today isn't a permanent guarantee — it's a clean, dated baseline to compare against later.",
     common:"Normal is the usual result here.",
-    next:"Nothing now. This becomes the comparison point for your next scan."
+    next:"Nothing now. This becomes the comparison point for your next scan.",
+    nextSrc:["rad-impression"]
   },
   {
-    id:"nodes", level:"green", region:"Lymph nodes",
-    label:"Normal",
+    id:"nodes", region:"Lymph nodes",
+    stated:{ urgency:"none", src:["rad-impression"],
+      quote:"No pathologically enlarged nodes. No follow-up required." },
     clinical:"No pathologically enlarged nodes in the neck, chest, abdomen or pelvis.",
     plain:"No swollen lymph nodes anywhere the scan covered.",
     what:"Lymph nodes are small filters spread throughout your body. When something is inflamed or spreading, they often enlarge first — so they're one of the first things checked.",
     means:"Nothing in your body is causing the kind of node enlargement a scan can see.",
     notmeans:"Normal nodes don't rule out infection or illness on their own — plenty of things never touch them.",
     common:"Normal is the usual result.",
-    next:"Nothing."
+    next:"Nothing.",
+    nextSrc:["rad-impression"]
   },
   {
-    id:"aorta", level:"green", region:"Aorta & great vessels",
-    label:"Normal",
+    id:"aorta", region:"Aorta & great vessels",
+    stated:{ urgency:"none", src:["rad-impression"],
+      quote:"Aorta normal calibre. No aneurysm or dissection. No follow-up required." },
     clinical:"Aorta normal calibre throughout. No aneurysm, dissection or significant atherosclerotic change.",
     plain:"Your body's main artery is a normal width along its whole length, with no bulges or tears.",
     what:"The aorta runs from your heart down through your abdomen. It was measured along its length.",
     means:"No aneurysm, no dissection, and no significant plaque build-up visible.",
     notmeans:"This isn't a full cardiac assessment — it doesn't measure the arteries of the heart itself or your cholesterol risk.",
     common:"Normal at 44 is expected.",
-    next:"Nothing from this scan. Standard heart-risk checks with your doctor still apply."
+    next:"Nothing from this scan. Standard heart-risk checks with your doctor still apply.",
+    nextSrc:["rad-impression"]
   }
 ];
+
+/* Colour, label and order are all derived from the stated urgency — one
+   line, so there is nowhere for a second opinion of our own to live. The
+   list order is the radiologist's urgency, then the order they wrote the
+   findings in. Nothing else gets a vote. */
+FINDINGS.forEach(f => {
+  const u = STATED_URGENCY[f.stated.urgency];
+  if (!u) throw new Error("unknown stated urgency: " + f.stated.urgency);
+  f.level = u.level; f.label = u.label; f.statedRank = u.rank; f.statedSaid = u.said;
+});
+FINDINGS.forEach((f, i) => f.reportOrder = i);
+FINDINGS.sort((a, b) => b.statedRank - a.statedRank || a.reportOrder - b.reportOrder);
 
 /* ---------------------------------------------------------------------
    PERSONA LAYER — voice only.
@@ -1097,26 +1274,82 @@ function setPersona(p){
   if ($("#sheet").classList.contains("on") && openFinding) openDetail(openFinding);
 }
 
-/* ---- results list ---- */
-$("#flist").innerHTML = FINDINGS.map(f => `
+/* ---- results list — gated on clinician release ---- */
+function renderResults(){
+  const g = releaseGate();
+  $("#relbanner").innerHTML = g.released
+    ? `<div class="relbar" id="relbar">
+         <div class="rl">
+           <b>✓ Reviewed and released by ${RELEASE.by}</b>
+           <p>${RELEASE.role} · ${RELEASE.at} · ${RELEASE.edits} edits before release. The urgency and
+           the referral are your radiologist's, not the model's. ${RELEASE.note}</p>
+         </div>
+         <button class="relbtn" id="relToggle">Demo: hold release</button>
+       </div>`
+    : `<div class="relbar held" id="relbar">
+         <div class="rl">
+           <b>⏸ Awaiting clinician release</b>
+           <p>Drafted and waiting for ${RELEASE.by} to review, revise and release. No urgency and no
+           referral has been shown to you.</p>
+         </div>
+         <button class="relbtn" id="relToggle">Demo: release it</button>
+       </div>`;
+  $("#holdWho").textContent = RELEASE.by;
+  $("#reslist").hidden = !g.released;
+  $("#reshold").hidden = g.released;
+  // held = the released list is not in the document at all. `hidden` is styling,
+  // not a gate: an unreleased urgency must not be sitting in the DOM.
+  if (g.released) paintFindings(); else $("#flist").innerHTML = "";
+  $("#relToggle").onclick = () => setRelease(g.released ? "pending" : "released");
+  // the same gate is toggleable from the system view — keep that button honest
+  const hb = $("#fHold");
+  if (hb){
+    hb.setAttribute("aria-pressed", String(!g.released));
+    hb.textContent = g.released ? "⏸ Hold clinician release" : "▶ Release results to the patient";
+  }
+}
+
+/* the single write path for the gate — everything downstream re-reads it */
+function setRelease(state){
+  RELEASE.state = state;
+  // same rule as the list: an unreleased finding is emptied out of the DOM,
+  // not merely hidden behind a class
+  if (state !== "released"){ closeSheet(); $("#sheetbox").innerHTML = ""; }
+  ingestDone = false;                 // the flow graph re-runs ingest against the new gate
+  renderResults();
+  if (typeof resetGraph === "function"){ resetGraph(false); fstat("idle"); }
+  const held = state !== "released";
+  if (typeof flog === "function")
+    flog("release_gate", held ? "release HELD — patient sees no stated urgency, nothing recommended"
+                              : `released by ${RELEASE.by} · ${RELEASE.at}`, held ? "w" : "");
+}
+
+function paintFindings(){
+  $("#flist").innerHTML = FINDINGS.map(f => `
   <button class="fcard ${f.level}" data-f="${f.id}">
     <div class="fhead">
       <span class="pill ${f.level}">${f.label}</span>
       <span class="region">${f.region}</span>
     </div>
+    <p class="said">Your radiologist called this <b>${f.statedSaid}</b>.</p>
     <div class="split">
       <div class="col"><label>What the report says</label><div class="clin">${f.clinical}</div></div>
       <div class="col eng-col"><label>What that means</label><div class="eng">${f.plain}</div></div>
     </div>
     <div class="more">Have ${VOICE[persona].name} explain this &nbsp;→</div>
   </button>`).join("");
-$$(".fcard").forEach(b => b.onclick = () => openDetail(b.dataset.f));
+  $$(".fcard").forEach(b => b.onclick = () => openDetail(b.dataset.f));
+}
 
 /* ---- detail sheet ---- */
 let openFinding = null;
 function openDetail(id){
   const f = FINDINGS.find(x => x.id === id);
   const v = VOICE[persona];
+  // the gate is enforced on the read path too, not only by hiding the list
+  if (!f || !releaseGate().released) return;
+  const nextG = sourceGuard(f.nextSrc);
+  const refG  = f.referral ? sourceGuard(f.referral.src) : null;
   openFinding = id;
   $("#sheetbox").innerHTML = `
     <div class="grip"></div>
@@ -1132,6 +1365,15 @@ function openDetail(id){
       <div class="clin">${f.clinical}</div>
     </div>
 
+    <div class="clinbox">
+      <label>How urgent your radiologist said this is</label>
+      <div class="clin">“${f.stated.quote}”</div>
+      ${citeHtml(f.stated.src)}
+      <p class="said" style="margin:9px 0 0">This is your radiologist's own wording, not a score we
+      calculated. We don't rate your findings — we show you what they said, in the order they
+      said it mattered, and the next step the guidelines attach to it.</p>
+    </div>
+
     <div class="navsays">
       ${av(persona)}
       <div class="body"><b class="nm">${v.name}:</b> ${v.intro[f.level]}</div>
@@ -1141,9 +1383,12 @@ function openDetail(id){
     <div class="qa"><h4>What it likely means</h4><p>${f.means}</p></div>
     <div class="qa not"><h4>What it does <em>not</em> mean</h4><p>${f.notmeans}</p></div>
     <div class="qa"><h4>How common is this?</h4><p>${f.common}</p></div>
-    <div class="qa next"><h4>What happens next</h4><p>${f.next}</p></div>
+    ${nextG.pass
+      ? `<div class="qa next"><h4>What happens next</h4><p>${f.next}</p>${citeHtml(f.nextSrc)}</div>`
+      : withheldHtml("What happens next", nextG)}
 
-    ${f.referral ? `
+    ${f.referral && !refG.pass ? withheldHtml(`${f.referral.who} referral`, refG) : ""}
+    ${f.referral && refG.pass ? `
     <div class="referral">
       <p class="eyebrow">Recommended referral</p>
       <h3>${f.referral.who}</h3>
@@ -1151,7 +1396,8 @@ function openDetail(id){
       <div class="refmeta">${f.referral.meta.map(m => `<span>${m}</span>`).join("")}</div>
       <button class="cta" onclick="alert('Demo only — no booking is made.\\n\\nIn the live product this opens scheduling with a partner urologist and attaches the report and images to the appointment.')">${f.referral.cta}</button>
       <button class="cta ghost" onclick="alert('Demo only.\\n\\nIn the live product this sends your full report and image set to the specialist ahead of the appointment.')">Send my report ahead</button>
-      <p class="refnote">This is a recommendation, not a diagnosis. Your clinician decides.</p>
+      ${citeHtml(f.referral.src)}
+      <p class="refnote">Reviewed and released by ${RELEASE.by} on ${RELEASE.at}. A recommendation, not a diagnosis — your clinician decides.</p>
     </div>` : ""}
 
     <div class="navsays" style="margin-top:16px">
@@ -1241,6 +1487,15 @@ function send(text, forced){
     if (a && a.escalate){
       bubble("escalate", `<b>⚠ Seek care now</b><p>${a[persona]}</p>
         <button class="cta" onclick="alert('Demo only — no call is placed.\\n\\nIn the live product this dials emergency services and simultaneously alerts the clinical team.')">Call emergency services</button>`);
+    } else if (!releaseGate().released){
+      /* the same gate, on the conversational surface: pre-release the navigator
+         will not discuss findings. The emergency path above is deliberately
+         ahead of this check — a gate must never sit in front of safety. */
+      bubble("gatemsg", `<b>⏸ Held until your results are released</b>
+        <p>I can't talk about what's in your scan until ${RELEASE.by} has reviewed and released it.
+        That review is what makes these results yours to act on rather than a machine's opinion —
+        it's usually the same working day. If anything feels urgent, I'll get you to a person now.</p>
+        <button onclick="alert('Demo only — no clinician is contacted.\\n\\nIn the live product this opens a same-day callback with the clinical team.')">Talk to a person now</button>`);
     } else if (a){
       bubble("msg nav", `<span class="navname">${VOICE[persona].name}</span>${a[persona]}`);
       if (a.handoff){
@@ -1346,8 +1601,11 @@ ${a.facts.map(f => `    <span class="s">"${f}"</span>`).join(",\n")}
     <span class="k">"may_diagnose"</span>: false,
     <span class="k">"may_advise_medication"</span>: false,
     <span class="k">"escalate_to_human"</span>: ${!!a.handoff},
-    <span class="k">"emergency_path"</span>: ${!!a.escalate}
+    <span class="k">"emergency_path"</span>: ${!!a.escalate},
+    <span class="k">"requires_clinician_release"</span>: true,
+    <span class="k">"recommendations_require_verified_source"</span>: true
   },
+  <span class="k">"released_by"</span>: <span class="s">"${RELEASE.by} · ${RELEASE.role} · ${RELEASE.at}"</span>,
   <span class="k">"persona"</span>: <span class="s">"voice layer — wording only, no fact access"</span>
 }</pre>`;
 }
@@ -1389,6 +1647,51 @@ function outputGuard(renderedHtml, approvedFacts){
   return { pass:unsupported.length === 0, checked:claimed.length, unsupported };
 }
 
+/* Second half of the output validator: a discretionary recommendation —
+   anything that tells the patient to DO something — ships only if every
+   source it cites resolves in the registry AND is verified. Otherwise it
+   is withheld. Not softened, not hedged, not paraphrased: withheld, with
+   the reason shown, while the rest of the answer still ships. */
+function sourceGuard(ids){
+  const cited = ids || [];
+  const missing = cited.filter(id => !SOURCES[id]);
+  const unverified = cited.filter(id => SOURCES[id] && !SOURCES[id].verified);
+  return {
+    pass: cited.length > 0 && missing.length === 0 && unverified.length === 0,
+    cited, missing, unverified,
+    reason: cited.length === 0 ? "no source was cited"
+      : missing.length ? `a cited source does not resolve (${missing.join(", ")})`
+      : unverified.length ? `a cited source is not verified (${unverified.map(id => SOURCES[id].label).join("; ")})`
+      : ""
+  };
+}
+
+/* every discretionary recommendation on the whole result object */
+function recommendationAudit(){
+  const recs = [];
+  for (const f of FINDINGS){
+    recs.push({ what:`${f.region} — next step`, guard:sourceGuard(f.nextSrc) });
+    if (f.referral) recs.push({ what:`${f.region} — ${f.referral.who} referral`, guard:sourceGuard(f.referral.src) });
+  }
+  return { total:recs.length, withheld:recs.filter(r => !r.guard.pass), recs };
+}
+
+const citeHtml = ids => `<div class="cites"><label>Sourced from</label>${
+  (ids || []).map(id => {
+    const s = SOURCES[id];
+    return `<span class="cite"><i>✓</i>${s ? s.label : id}<em>${s ? s.where : "unresolved"}</em></span>`;
+  }).join("")}</div>`;
+
+const withheldHtml = (title, g) => `
+  <div class="withheld">
+    <h4>⏸ ${title} — withheld</h4>
+    <p>Held back because ${g.reason}. Recommendations only reach you when the source behind them
+    checks out, so nothing here is a guess dressed up as advice. Your clinical team has been asked
+    to confirm it, and it appears here the moment they do.</p>
+    <p class="stillsafe">Everything else on this finding is unchanged — the report wording, what it
+    is, and what it does not mean are all still shown above.</p>
+  </div>`;
+
 /* ---- graph plumbing ---- */
 const gSvg  = () => $("#fgraph");
 const fnode = id => $("#fn-" + id);
@@ -1427,8 +1730,8 @@ function resetGraph(keepIngest){
   ["msg","gin","shared","eva","evan","gout","out","esc","audit"].forEach(id => setNode(id, "dim", "idle"));
   ["mg","gs","ge","se","sev","eg","evg","go","oa","ea","regen"].forEach(id => setLink(id, null));
   if (!keepIngest){
-    ["report","extract","risk"].forEach(id => setNode(id, "dim", "idle"));
-    ["re","er","rs"].forEach(id => setLink(id, null));
+    ["report","extract","risk","hcp"].forEach(id => setNode(id, "dim", "idle"));
+    ["re","er","rh","rs"].forEach(id => setLink(id, null));
   }
   gSvg().classList.remove("blive","bnever","xblock");
   $("#regenL").setAttribute("opacity", "0");
@@ -1445,12 +1748,38 @@ async function runIngest(){
   setNode("extract","done", FINDINGS.length + " typed finding objects");
   flog("extraction", FINDINGS.length + " findings typed — region, measurement, descriptor, recommendation");
   setLink("re","done"); setLink("er","on"); await wait(480);
-  setNode("risk","on","applying clinical rule table"); await wait(600);
-  const counts = ["red","amber","green"].map(l => FINDINGS.filter(f => f.level === l).length);
-  setNode("risk","done", `${counts[0]} red · ${counts[1]} amber · ${counts[2]} green`);
-  flog("risk_rank", "tiers assigned by rule table — the model has no vote here");
-  setLink("er","done"); setLink("rs","on"); await wait(460);
-  setNode("shared","done", FINDINGS.length + " findings · read-only downstream");
+  setNode("risk","on","reading stated urgency"); await wait(600);
+  setNode("risk","done", `urgency read for ${FINDINGS.length} findings`);
+  flog("stated_urgency", "urgency read verbatim from the signed report — no score is computed here, "
+    + "by the model or by us");
+  flog("next_step", "guideline-cited next step and specialty attached from the rule table");
+  setLink("er","done"); setLink("rh","on"); await wait(460);
+
+  /* ---- output validator: every discretionary recommendation must cite a
+     source that resolves and is verified, or it never reaches the draft ---- */
+  const audit = recommendationAudit();
+  flog("rec_guard", `${audit.total} discretionary recommendations · sources checked against the registry`);
+  audit.withheld.forEach(r => flog("rec_guard", `WITHHELD — ${r.what}: ${r.guard.reason}`, "e"));
+
+  /* ---- HCP-in-the-loop: no urgency and nothing recommended is released until a
+     named clinician reviews and signs it off ---- */
+  const rel = releaseGate();
+  setNode("hcp","on","clinician reviewing draft"); await wait(620);
+  if (!rel.released){
+    setNode("hcp","bad","HELD — nothing released");
+    flog("release_gate", "HELD — no clinician release on file · patient sees no urgency, no referral", "e");
+    setLink("rh","done"); setLink("rs","off");
+    setNode("shared","dim","not released to patient");
+    fstat("held — awaiting clinician release", "bad");
+    ingestDone = false;              // re-run the moment the gate changes
+    return;
+  }
+  setNode("hcp","done", `released by ${RELEASE.by}`);
+  flog("release_gate", `RELEASED by ${RELEASE.by} · ${RELEASE.at} · ${RELEASE.edits} clinician edits`
+    + (audit.withheld.length ? ` · ${audit.withheld.length} recommendation(s) withheld` : " · all recommendations sourced"));
+  setLink("rh","done"); setLink("rs","on"); await wait(460);
+  setNode("shared","done", FINDINGS.length + " findings · " +
+    (audit.total - audit.withheld.length) + "/" + audit.total + " recs released");
   setLink("rs","done");
   flog("shared_obj", "clinical result object sealed");
   fstat("ready");
@@ -1521,6 +1850,32 @@ async function runFlow(text, answer){
     setNode("audit","warn", `${guard.rule.id} · blocked_before_model=true`);
     flog("audit_log", `written · rule=${guard.rule.id} · blocked_before_model=true`);
     fstat("blocked before the model", "bad");
+    running = false; return;
+  }
+
+  /* ---- (a2) results not released: the model is never asked about findings.
+     Deliberately placed AFTER the urgent-symptom path — a compliance gate must
+     never sit in front of a safety escalation. ---- */
+  if (!releaseGate().released){
+    setNode("gin","done","no rule matched · PASS");
+    flog("input_guard", "no rule matched · PASS");
+    setLink("mg","done"); await wait(380);
+    setNode("hcp","bad","HELD — nothing released");
+    setLink("gs","off");
+    gSvg().classList.add("xblock","bnever");
+    flog("release_gate", "no clinician release on file — findings are not discussable", "e");
+    flog("model", "NOT INVOKED — there is nothing the patient is cleared to be told", "e");
+    setNode("shared","dim","not released"); setNode("eva","dim","not reached");
+    setNode("evan","dim","not reached"); setNode("gout","dim","not reached");
+    await wait(620);
+    setLink("ge","bad");
+    setNode("esc","bad","held · clinician review pending");
+    flog("escalation", "patient told plainly why, and offered a person immediately", "e");
+    await wait(520);
+    setLink("ea","bad");
+    setNode("audit","warn","release_gate=HELD · model_invoked=false");
+    flog("audit_log", "written · release_gate=HELD · model_invoked=false");
+    fstat("held — awaiting clinician release", "bad");
     running = false; return;
   }
 
@@ -1625,6 +1980,28 @@ $("#fInject").onclick = e => {
     : "fault injection OFF", "w");
 };
 
+/* the two gates, exposed as demo controls: hold the clinician release, and
+   break the citation behind a recommendation. Both are the real code paths —
+   the same functions the results screen reads. */
+const BREAKABLE_SRC = "bosniak-2019";
+
+$("#fHold").onclick = () =>
+  setRelease(RELEASE.state === "released" ? "pending" : "released");   // renderResults repaints the button
+
+$("#fBreakSrc").onclick = e => {
+  const s = SOURCES[BREAKABLE_SRC];
+  s.verified = !s.verified;
+  e.currentTarget.setAttribute("aria-pressed", String(!s.verified));
+  e.currentTarget.textContent = s.verified ? "⚠ Break a cited source" : "✓ Restore the cited source";
+  ingestDone = false;
+  if (openFinding) openDetail(openFinding);      // an open sheet re-validates live
+  const audit = recommendationAudit();
+  flog("rec_guard", s.verified
+    ? `${BREAKABLE_SRC} re-verified — all ${audit.total} recommendations sourced`
+    : `${BREAKABLE_SRC} marked UNVERIFIED — ${audit.withheld.length} recommendation(s) will be withheld`,
+    s.verified ? "" : "w");
+};
+
 /* both personas, one shared object — the graph half of the Prove-it argument */
 $("#fBoth").onclick = async () => {
   if (running) return;
@@ -1661,6 +2038,7 @@ $("#fBoth").onclick = async () => {
 /* boot */
 paintSettings();
 setPersona("eva");
+renderResults();
 renderProve();
 
 /* self-check: every scripted answer must pass fact parity, or the demo
@@ -1698,11 +2076,72 @@ renderProve();
     outputGuard(ANSWERS[0].eva + ' <mark class="f">this is almost certainly benign</mark>',
                 ANSWERS[0].facts).pass === false);
   must("every graph node referenced by the animation exists",
-    ["report","extract","risk","msg","gin","shared","eva","evan","gout","out","esc","audit"]
+    ["report","extract","risk","hcp","msg","gin","shared","eva","evan","gout","out","esc","audit"]
       .every(id => !!document.getElementById("fn-" + id)));
   must("every connector referenced by the animation exists",
-    ["re","er","rs","mg","gs","ge","se","sev","eg","evg","go","oa","ea","regen"]
+    ["re","er","rh","rs","mg","gs","ge","se","sev","eg","evg","go","oa","ea","regen"]
       .every(id => !!document.getElementById("lk-" + id)));
+
+  /* ---- HCP release gate ---- */
+  must("results are gated on a named clinician release",
+    typeof RELEASE.by === "string" && RELEASE.by.length > 0);
+  must("release gate reads released in the demo's default state",
+    releaseGate().released === true);
+  (function gateHeld(){
+    const prev = RELEASE.state;
+    RELEASE.state = "pending";
+    must("held: the gate reports not released", releaseGate().released === false);
+    must("held: the results list is not rendered",
+      (renderResults(), document.querySelector("#reslist").hidden === true));
+    must("held: no finding card is reachable", !document.querySelector(".fcard"));
+    must("held: no referral is on the page", !document.querySelector(".referral"));
+    must("held: opening a finding directly is refused",
+      (openDetail("kidney"), document.querySelector("#sheet").classList.contains("on") === false));
+    RELEASE.state = prev;
+    renderResults();
+    must("released: the results list comes back",
+      document.querySelectorAll(".fcard").length === FINDINGS.length);
+  })();
+
+  /* ---- urgency comes from the report, never from us ---- */
+  must("every finding carries the radiologist's stated urgency",
+    FINDINGS.every(f => f.stated && STATED_URGENCY[f.stated.urgency]));
+  must("every stated urgency quotes the report and cites it",
+    FINDINGS.every(f => f.stated.quote.length > 10 && sourceGuard(f.stated.src).pass));
+  must("every stated urgency cites the signed report itself",
+    FINDINGS.every(f => f.stated.src.includes("rad-impression")));
+  must("colour and label are the stated urgency, not a second opinion",
+    FINDINGS.every(f => f.level === STATED_URGENCY[f.stated.urgency].level
+                     && f.label === STATED_URGENCY[f.stated.urgency].label));
+  must("the list is ordered by stated urgency, then by report order",
+    FINDINGS.every((f, i) => i === 0 ||
+      FINDINGS[i-1].statedRank > f.statedRank ||
+      (FINDINGS[i-1].statedRank === f.statedRank && FINDINGS[i-1].reportOrder < f.reportOrder)));
+  must("no finding carries a score of our own",
+    FINDINGS.every(f => !("score" in f) && !("riskScore" in f) && !("risk" in f)));
+  must("a finding referral names a specialty and cites a guideline",
+    FINDINGS.filter(f => f.referral).every(f => f.referral.who && f.referral.src.length > 1));
+
+  /* ---- recommendation source validator ---- */
+  must("every finding cites a source for its next step",
+    FINDINGS.every(f => sourceGuard(f.nextSrc).pass));
+  must("every referral cites a source",
+    FINDINGS.filter(f => f.referral).every(f => sourceGuard(f.referral.src).pass));
+  must("an uncited recommendation is withheld", sourceGuard([]).pass === false);
+  must("a recommendation citing an unknown source is withheld",
+    sourceGuard(["no-such-guideline"]).pass === false);
+  (function unverified(){
+    const s = SOURCES["bosniak-2019"];
+    s.verified = false;
+    must("an unverified source withholds the recommendation that cites it",
+      sourceGuard(["bosniak-2019"]).pass === false);
+    must("the withheld recommendation names why", /not verified/.test(sourceGuard(["bosniak-2019"]).reason));
+    must("recommendation audit counts the withheld ones", recommendationAudit().withheld.length === 2);
+    must("recommendations citing other sources still ship",
+      sourceGuard(["rad-impression"]).pass === true);
+    s.verified = true;
+    must("restoring the source restores the recommendation", recommendationAudit().withheld.length === 0);
+  })();
 
   const fails = t.filter(x => !x.ok);
   if (fails.length) console.error("GUARDRAIL SELF-CHECK FAILED:", fails.map(f => f.name));
