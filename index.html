@@ -7,7 +7,7 @@
 <meta name="robots" content="noindex, nofollow">
 <title>AI Navigator — Interactive Demo</title>
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23186A55'/%3E%3Cpath d='M6 16h4l3 7 4-14 3 7h6' fill='none' stroke='%23fff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-<meta name="description" content="Interactive demo of an AI navigator that explains whole-body MRI results in plain language. Fictional patient, synthetic data.">
+<meta name="description" content="Interactive demo of an AI navigator that closes the loop on whole-body MRI results — the guideline-cited next step, referral routing and follow-up, not just a plain-language explanation. Fictional patient, synthetic data.">
 <style>
   :root{
     --paper:#F7F5F1;
@@ -58,30 +58,11 @@
 
   .wrap{max-width:760px;margin:0 auto;padding:0 18px}
 
-  /* ---------- persona picker ---------- */
-  #persona{min-height:calc(100dvh - 32px);display:flex;flex-direction:column;justify-content:center;padding:40px 0 56px}
   .eyebrow{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:14px}
-  #persona h1{font-size:clamp(30px,8vw,42px);margin-bottom:14px}
-  #persona .lede{color:var(--ink-2);font-size:17px;max-width:44ch;margin-bottom:30px}
-  .pcards{display:grid;gap:14px;grid-template-columns:1fr}
-  @media(min-width:620px){.pcards{grid-template-columns:1fr 1fr;gap:18px}}
-  .pcard{
-    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
-    padding:22px;text-align:left;box-shadow:var(--shadow);
-    transition:transform .18s ease, box-shadow .18s ease, border-color .18s ease;
-    display:flex;flex-direction:column;gap:12px;
-  }
-  .pcard:hover,.pcard:focus-visible{transform:translateY(-3px);box-shadow:var(--shadow-lift);border-color:#CFD8D3;outline:none}
-  .pcard .av{width:64px;height:64px;border-radius:50%;display:grid;place-items:center;
-    font-family:var(--serif);font-size:25px;color:#fff;flex:none}
   .av-eva{background:linear-gradient(150deg,#2E8C72,#186A55)}
   .av-evan{background:linear-gradient(150deg,#3E5F7A,#26415A)}
-  .pcard h3{font-size:22px}
-  .pcard .role{font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-top:-6px}
-  .pcard p{font-size:14.5px;color:var(--ink-2)}
-  .pcard .sample{font-size:14px;color:var(--ink-2);font-style:italic;border-left:2px solid var(--accent);padding-left:12px}
-  .pcard .pick{margin-top:auto;font-size:14px;font-weight:650;color:var(--accent);display:flex;align-items:center;gap:6px}
-  .note{font-size:13px;color:var(--muted);margin-top:22px;max-width:52ch}
+  .navintro{font-size:13px;color:var(--muted);margin:-4px 0 18px}
+  .navintro button{font:inherit;font-weight:650;color:var(--accent);background:none;border:0;padding:0;cursor:pointer}
 
   /* ---------- app shell ---------- */
   #app{display:none;padding-bottom:calc(84px + var(--safe-b))}
@@ -92,6 +73,14 @@
   .apphead .who{flex:1;min-width:0}
   .apphead .who b{display:block;font-size:15px;font-weight:650}
   .apphead .who span{display:block;font-size:12.5px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  /* AB 3030 / AB 489 — the disclosure is persistent, on every screen, and it
+     carries the one-tap route to a person beside it. Same sentence the clinical
+     library attaches to every released summary and every live turn. */
+  .aidisc{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:11.5px;line-height:1.45;
+    color:var(--muted);padding:9px 0 0;border-bottom:1px solid var(--line);padding-bottom:9px}
+  .aidisc p{margin:0;flex:1;min-width:190px}
+  .aidisc button{font-size:11.5px;font-weight:600;color:var(--ink-2);background:var(--paper);
+    border:1px solid var(--line);border-radius:999px;padding:5px 11px;flex:none}
   .gear{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;background:var(--card);flex:none}
   .gear:active{background:var(--paper)}
 
@@ -315,7 +304,7 @@
     backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:var(--safe-b);display:none}
   #nav.on{display:block}
   /* column count must match the number of .nb buttons or the last one wraps */
-  #nav .inner{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(4,1fr)}
+  #nav .inner{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr)}
   .nb{padding:10px 4px 11px;display:flex;flex-direction:column;align-items:center;gap:3px;
     font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.01em}
   .nb svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
@@ -357,6 +346,8 @@
     background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-top:14px;
   }
   #tab-flow .sysnote b{color:var(--ink)}
+  .proveblock{margin-top:26px;padding-top:22px;border-top:1px solid var(--line)}
+  .proveblock h3{font-size:18px;margin-bottom:4px}
   .sysbox{
     background:var(--sys-bg);border:1px solid #1B2B24;border-radius:var(--radius);
     overflow:hidden;box-shadow:var(--shadow);margin-top:4px;
@@ -461,35 +452,6 @@
   <span>Demo — fictional patient, no real medical data</span>
 </div>
 
-<!-- ============ PERSONA PICKER ============ -->
-<section id="persona" class="wrap">
-  <p class="eyebrow">Your results are ready</p>
-  <h1>Meet your navigator</h1>
-  <p class="lede">Someone to walk you through your whole-body MRI in plain language — and stay with you afterwards for every question that comes up at 2am.</p>
-
-  <div class="pcards">
-    <button class="pcard" data-pick="eva">
-      <div class="av av-eva">Eva</div>
-      <h3>Eva</h3>
-      <p class="role">Warm &amp; reassuring</p>
-      <p>Takes it gently. Names the worry before the fact, and checks in on how you're feeling as you go.</p>
-      <p class="sample">“Let's take this one at a time — I'll stay with you the whole way through.”</p>
-      <span class="pick">Choose Eva &nbsp;→</span>
-    </button>
-
-    <button class="pcard" data-pick="evan">
-      <div class="av av-evan">Evan</div>
-      <h3>Evan</h3>
-      <p class="role">Calm &amp; direct</p>
-      <p>Straight to the point. Gives you the finding, the meaning, and the next step, in that order.</p>
-      <p class="sample">“Here's what we found, what it means, and what happens next.”</p>
-      <span class="pick">Choose Evan &nbsp;→</span>
-    </button>
-  </div>
-
-  <p class="note">Eva and Evan are the same clinical engine. Tone and wording differ; the medical substance is identical — and you can prove it inside the demo. You can switch at any time from settings.</p>
-</section>
-
 <!-- ============ APP ============ -->
 <main id="app">
   <div class="wrap">
@@ -507,10 +469,17 @@
       </button>
     </header>
 
+    <div class="aidisc">
+      <p>This was written by an AI assistant, not by a clinician. Every word about your
+         scan was reviewed and released by a licensed radiologist first.</p>
+      <button onclick="alert('Demo only — no clinician is contacted.\n\nIn the live product this opens a same-day callback with the clinical team.')">Talk to a person</button>
+    </div>
+
     <!-- RESULTS -->
     <section class="tabbody" id="tab-results">
       <h2 class="screen">Your scan results</h2>
       <p class="sub">Eight areas reviewed. Ordered by the urgency your radiologist stated — not by a score we calculated.</p>
+      <p class="navintro">Explained by <b id="introName">Eva</b> · <button id="introSwitch" type="button">prefer a different tone? switch anytime →</button></p>
       <div id="relbanner"></div>
       <div id="reslist">
         <div class="summary">
@@ -558,26 +527,6 @@
     </section>
 
     <!-- PROVE IT -->
-    <section class="tabbody" id="tab-prove" hidden>
-      <h2 class="screen">Prove it</h2>
-      <p class="sub">Same question. Both navigators. Watch the clinical facts stay identical while only the tone moves.</p>
-
-      <div class="proveq" id="proveQ"></div>
-
-      <div class="toggle">
-        <div class="lbl">Highlight shared clinical facts
-          <small>Marks every medical fact that must appear in both answers.</small></div>
-        <button class="sw" id="hlSw" aria-pressed="true" aria-label="Toggle fact highlighting"></button>
-      </div>
-
-      <div id="verdict"></div>
-      <div class="panes hl" id="panes"></div>
-
-      <div class="objbox" id="objbox"></div>
-
-      <footer>Both answers on this screen are rendered from one shared clinical result object. The persona layer can change wording, order and warmth — it has no access to the facts themselves, so the medical substance cannot diverge. The check above runs live in your browser every time you change the question.</footer>
-    </section>
-
     <!-- ============ HOW IT WORKS — AGENT FLOW VISUALIZER ============ -->
     <section class="tabbody" id="tab-flow" hidden>
       <h2 class="screen">How it works</h2>
@@ -776,7 +725,25 @@
         reaches it at all.
       </div>
 
-      <footer>The trace above is real: the same guard functions that run in the chat drive this diagram, and the claim validator re-checks the rendered answer against the shared clinical result object every time. Node timings are illustrative.</footer>
+      <div class="proveblock">
+        <h3>Optional: see it in plain text, not just the graph</h3>
+        <p class="sub">Same question, both navigators, side by side — pick a question below and watch the clinical facts stay identical while only the tone moves.</p>
+
+        <div class="proveq" id="proveQ"></div>
+
+        <div class="toggle">
+          <div class="lbl">Highlight shared clinical facts
+            <small>Marks every medical fact that must appear in both answers.</small></div>
+          <button class="sw" id="hlSw" aria-pressed="true" aria-label="Toggle fact highlighting"></button>
+        </div>
+
+        <div id="verdict"></div>
+        <div class="panes hl" id="panes"></div>
+
+        <div class="objbox" id="objbox"></div>
+      </div>
+
+      <footer>The trace above is real: the same guard functions that run in the chat drive this diagram, and the claim validator re-checks the rendered answer against the shared clinical result object every time. Node timings are illustrative. Both answers in the "see it in plain text" panel above are rendered from that same shared clinical result object — the persona layer has no access to the facts themselves, so the medical substance cannot diverge.</footer>
     </section>
   </div>
 </main>
@@ -788,9 +755,6 @@
     </button>
     <button class="nb" data-tab="ask">
       <svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></svg><span class="asknm">Ask</span>
-    </button>
-    <button class="nb" data-tab="prove">
-      <svg viewBox="0 0 24 24"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>Prove it
     </button>
     <button class="nb" data-tab="flow">
       <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="6" rx="1.5"/><rect x="14" y="15" width="7" height="6" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/><path d="M6.5 9v6M10 18h4M17.5 15V9H6.5"/></svg>How it works
@@ -902,9 +866,9 @@ const FINDINGS = [
     clinical:"2.4 cm complex cystic lesion, upper pole of left kidney. Thickened, irregularly enhancing internal septations. Bosniak category III.",
     plain:"A fluid-filled spot on your left kidney with a few features we want a specialist to look at properly.",
     what:"A cyst is a small pocket of fluid. Most are completely simple and completely harmless. Yours has a few thin walls running through it, and those walls take up the contrast dye on the scan. That combination puts it into a category radiologists call Bosniak III — which is the \"this needs a proper look\" category, not the \"bad news\" category.",
-    means:"Bosniak III means genuinely uncertain. In studies of lesions like this, roughly half turn out to be entirely benign. The other half can contain a slow-growing kidney tumour — and at 2.4 cm, that would be small and highly treatable. Either way, the finding is early.",
+    means:"Bosniak III means genuinely uncertain — it's the category radiologists use precisely because imaging alone can't call it benign or not. A urologist reviewing your actual images, usually alongside one more targeted test, is how this actually gets resolved. Either way, catching it at 2.4 cm means it's early.",
     notmeans:"It does not mean you have cancer. Nobody can tell you that you do or don't from this scan, and I'm not going to guess. It also doesn't mean you need surgery, and it doesn't mean anything is going to change in the next few weeks.",
-    common:"About one in four adults over 40 has some kind of kidney cyst show up on imaging. A small slice of those land in this category.",
+    common:"Kidney cysts are one of the most common incidental findings on abdominal imaging, especially with age. Only a small share of those land in this more uncertain Bosniak III category.",
     next:"A urologist reviews the actual images — not this summary — and almost always orders one more targeted test, usually a dedicated kidney CT or a contrast-enhanced ultrasound, within the next few weeks. That single test settles it most of the time.",
     nextSrc:["rad-impression","bosniak-2019"],
     referral:{
@@ -923,7 +887,7 @@ const FINDINGS = [
     what:"PDFF is simply the percentage of your liver made up of fat. Under about 5% is typical. Yours measured 14.2%, which sits in the moderate range. The scan found no scarring and no lumps.",
     means:"This is usually tied to some mix of diet, alcohol, body weight, blood sugar and plain genetics. At this level, and with no scarring on the scan, it's the stage that responds best to changes you actually control.",
     notmeans:"This is not cirrhosis and not liver failure. It's not a lump. It's not permanent — this number can and often does come down.",
-    common:"Roughly one in three adults in the US has some degree of fatty liver. It's one of the most frequent findings on any whole-body scan.",
+    common:"Fatty liver is one of the most frequent findings on any whole-body scan — common enough that it's a routine, expected part of what this kind of screening turns up.",
     next:"Your primary care doctor is the right person here. Expect a blood panel — liver enzymes, A1c, lipids — and a repeat measurement in about 12 months. Nutrition and activity changes move this number more than any medication currently does at this stage.",
     nextSrc:["rad-impression","aasld-2023"]
   },
@@ -936,7 +900,7 @@ const FINDINGS = [
     what:"It's a pea-sized solid area in one lobe of your thyroid. The edges are smooth and none of the features radiologists worry about are present. TI-RADS is a 1-to-5 scale for how suspicious a nodule looks; yours is a 3, and it's mostly a 3 because of its size rather than its appearance.",
     means:"The large majority of nodules like this are benign. The recheck exists because thyroid nodules are followed rather than assumed — not because this one looks concerning.",
     notmeans:"It isn't a lump you'd feel in your neck. It isn't affecting your thyroid hormones by itself. It isn't urgent, and it doesn't need anything done this month.",
-    common:"More than half of adults have at least one thyroid nodule visible on imaging. Fewer than one in twenty turn out to be cancer, and those are usually slow-growing.",
+    common:"Thyroid nodules are one of the most common incidental findings on any scan that includes the neck — common enough that radiologists use a dedicated grading system (TI-RADS) just to sort out which ones need a closer look.",
     next:"A dedicated thyroid ultrasound plus a TSH blood test, in about 3 to 6 months. Ultrasound sees thyroid detail far better than MRI does. You'd only see an endocrinologist if that ultrasound changes the picture.",
     nextSrc:["rad-impression","acr-tirads-2017"]
   },
@@ -962,7 +926,7 @@ const FINDINGS = [
     what:"Discs are cushions between the vertebrae, and they dry out slightly with age. One of yours shows that mild drying. Everything that matters — the spinal canal, the nerve roots, the cord itself — is clear.",
     means:"It's the spinal equivalent of grey hair. It's reported because it's visible, not because it's a problem.",
     notmeans:"It's not a slipped disc, not a pinched nerve, and not a reason to change how you move or train.",
-    common:"By 40, most people show some disc drying on MRI whether or not their back has ever hurt.",
+    common:"Disc drying like this is a normal part of aging and turns up on MRI often, whether or not someone's back has ever bothered them.",
     next:"Nothing. If your back does start hurting, this is useful context for whoever sees you — not a cause.",
     nextSrc:["rad-impression"]
   },
@@ -1058,16 +1022,16 @@ const ANSWERS = [
   {
     id:"cancer", chip:"Is this cancer?", kind:"common",
     match:["cancer","tumor","tumour","malignant","malignancy","oncolog"],
-    facts:["Bosniak III","roughly half","2.4 cm","a urologist"],
+    facts:["Bosniak III","2.4 cm","a urologist"],
     handoff:true,
     eva:`That's the question almost everyone asks first, and I'm not going to dance around it.
 
-I can't tell you whether this is cancer, and I wouldn't want to guess with something this important. What I can tell you is what the scan actually found. Your kidney finding is classed <mark class="f">Bosniak III</mark>, which is the radiologist's way of saying uncertain. Of lesions in that category, <mark class="f">roughly half</mark> turn out to be completely benign. The rest can contain a slow-growing kidney tumour — and at <mark class="f">2.4 cm</mark> that would be caught early and treated well.
+I can't tell you whether this is cancer, and I wouldn't want to guess with something this important. What I can tell you is what the scan actually found. Your kidney finding is classed <mark class="f">Bosniak III</mark>, which is the radiologist's way of saying uncertain — it's not a call imaging alone can make. At <mark class="f">2.4 cm</mark>, if it does turn out to need treatment, it would be caught early and treated well.
 
 Only <mark class="f">a urologist</mark> looking at your actual images can answer the question you're asking. I'd rather get you to that answer properly than give you a comforting guess tonight.`,
     evan:`Direct answer: I don't know, and no scan alone can tell you.
 
-Here's what is known. The kidney lesion is classed <mark class="f">Bosniak III</mark> — the "uncertain" category. In that category, <mark class="f">roughly half</mark> are benign. The remainder can be a slow-growing kidney tumour, which at <mark class="f">2.4 cm</mark> is small and treatable.
+Here's what is known. The kidney lesion is classed <mark class="f">Bosniak III</mark> — the "uncertain" category, uncertain by design rather than by how the scan was read. At <mark class="f">2.4 cm</mark>, it's small enough to be treated well if treatment turns out to be needed.
 
 The answer comes from <mark class="f">a urologist</mark> reviewing your images, usually with one additional targeted test. That's the next step, and it's the only thing that resolves this question.`
   },
@@ -1237,10 +1201,10 @@ let persona = "eva";
 
 const av = (p, extra="") => `<div class="av ${VOICE[p].cls}" ${extra}>${VOICE[p].name}</div>`;
 
-/* ---- persona pick ---- */
-$$(".pcard").forEach(b => b.onclick = () => start(b.dataset.pick));
+/* ---- persona switch (optional — a sensible default is picked automatically) ---- */
 $$(".opt").forEach(b => b.onclick = () => { setPersona(b.dataset.set); paintSettings(); });
 $("#gearBtn").onclick = () => { paintSettings(); $("#settings").classList.add("on"); };
+$("#introSwitch").onclick = () => { paintSettings(); $("#settings").classList.add("on"); };
 $("#closeSet").onclick = () => $("#settings").classList.remove("on");
 $("#settings").onclick = e => { if (e.target.id === "settings") $("#settings").classList.remove("on"); };
 
@@ -1254,10 +1218,8 @@ function paintSettings(){
 
 function start(p){
   setPersona(p);
-  $("#persona").style.display = "none";
   $("#app").classList.add("on");
   $("#nav").classList.add("on");
-  window.scrollTo(0,0);
 }
 
 function setPersona(p){
@@ -1266,6 +1228,7 @@ function setPersona(p){
   $("#headAv").className = "av " + v.cls;
   $("#headAv").textContent = v.name;
   $("#headName").textContent = v.name + " · your navigator";
+  $("#introName").textContent = v.name;
   $$(".navnm").forEach(e => e.textContent = v.name);
   $$(".asknm").forEach(e => e.textContent = "Ask " + v.name);
   $("#inp").placeholder = `Ask ${v.name} anything…`;
@@ -1317,6 +1280,7 @@ function setRelease(state){
   if (state !== "released"){ closeSheet(); $("#sheetbox").innerHTML = ""; }
   ingestDone = false;                 // the flow graph re-runs ingest against the new gate
   renderResults();
+  renderProve();                      // the parity panes are gated too — see renderProve
   if (typeof resetGraph === "function"){ resetGraph(false); fstat("idle"); }
   const held = state !== "released";
   if (typeof flog === "function")
@@ -1417,7 +1381,7 @@ $("#sheet").onclick = e => { if (e.target.id === "sheet") closeSheet(); };
 
 /* ---- tabs ---- */
 function go(tab){
-  ["results","ask","prove","flow"].forEach(t => $("#tab-" + t).hidden = (t !== tab));
+  ["results","ask","flow"].forEach(t => $("#tab-" + t).hidden = (t !== tab));
   $$(".nb").forEach(b => b.setAttribute("aria-current", b.dataset.tab === tab));
   window.scrollTo(0,0);
 }
@@ -1571,6 +1535,25 @@ function renderProve(){
   const a = ANSWERS.find(x => x.id === proveId);
   if (!a) return;
   $$(".qbtn").forEach(b => b.setAttribute("aria-pressed", b.dataset.q === proveId));
+
+  /* Same gate as the results list, the finding sheet, the chat and the flow
+     graph. These panes render real clinical substance ("Bosniak III", "2.4 cm")
+     and stamp the radiologist's name on it — none of that may appear before
+     that radiologist has released it. Emptied out of the DOM, not hidden
+     behind a class. */
+  if (!releaseGate().released){
+    $("#panes").innerHTML = "";
+    $("#objbox").innerHTML = "";
+    $("#verdict").innerHTML = `
+      <div class="verdict bad">
+        <b>⏸ Held until your results are released</b>
+        Both navigators answer from one clinical result object — and that object
+        does not exist for a patient until ${RELEASE.by} has reviewed and released it.
+        Nothing here is shown before then, including on this screen.
+        Use <b>Demo: release it</b> on the results tab to see the comparison run.
+      </div>`;
+    return;
+  }
 
   $("#panes").innerHTML = ["eva","evan"].map(p => `
     <div class="pane">
@@ -2035,9 +2018,9 @@ $("#fBoth").onclick = async () => {
   running = false;
 };
 
-/* boot */
+/* boot — a default persona is picked automatically; no forced choice screen */
 paintSettings();
-setPersona("eva");
+start("eva");
 renderResults();
 renderProve();
 
