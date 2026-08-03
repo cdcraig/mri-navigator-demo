@@ -33,11 +33,16 @@
     --safe-b:env(safe-area-inset-bottom,0px);
   }
   *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  [hidden]{display:none!important}
   html{-webkit-text-size-adjust:100%}
+  /* The patient flow is a stepped wizard, not a scrolling page: the viewport
+     is the frame, and the only thing that scrolls is the body of the current
+     step. Badge, header, disclosure and the wizard controls are all pinned. */
+  html,body{height:100%}
   body{
     background:var(--paper);color:var(--ink);font-family:var(--sans);
     font-size:16px;line-height:1.55;letter-spacing:-.01em;
-    overflow-x:hidden;
+    overflow:hidden;display:flex;flex-direction:column;
   }
   button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
   h1,h2,h3{font-family:var(--serif);font-weight:600;letter-spacing:-.02em;line-height:1.2}
@@ -45,7 +50,7 @@
 
   /* ---------- persistent demo badge ---------- */
   #demobar{
-    position:sticky;top:0;z-index:60;
+    flex:none;z-index:60;
     background:var(--ink);color:#EFEDE7;
     font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:600;
     padding:7px 14px;text-align:center;
@@ -65,9 +70,11 @@
   .navintro button{font:inherit;font-weight:650;color:var(--accent);background:none;border:0;padding:0;cursor:pointer}
 
   /* ---------- app shell ---------- */
-  #app{display:none;padding-bottom:calc(84px + var(--safe-b))}
-  #app.on{display:block}
-  .apphead{display:flex;align-items:center;gap:12px;padding:16px 0 14px;border-bottom:1px solid var(--line)}
+  #app{display:none;flex:1;min-height:0}
+  #app.on{display:flex;flex-direction:column}
+  .apptop{flex:none;background:var(--paper);border-bottom:1px solid var(--line);z-index:20}
+  .appscroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+  .apphead{display:flex;align-items:center;gap:10px;padding:12px 0 11px;border-bottom:1px solid var(--line)}
   .apphead .av{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;
     font-family:var(--serif);font-size:16px;color:#fff;flex:none}
   .apphead .who{flex:1;min-width:0}
@@ -76,9 +83,9 @@
   /* AB 3030 / AB 489 — the disclosure is persistent, on every screen, and it
      carries the one-tap route to a person beside it. Same sentence the clinical
      library attaches to every released summary and every live turn. */
-  .aidisc{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:11.5px;line-height:1.45;
-    color:var(--muted);padding:9px 0 0;border-bottom:1px solid var(--line);padding-bottom:9px}
-  .aidisc p{margin:0;flex:1;min-width:190px}
+  .aidisc{display:flex;align-items:center;gap:10px;flex-wrap:nowrap;font-size:11px;line-height:1.4;
+    color:var(--muted);padding:8px 0}
+  .aidisc p{margin:0;flex:1;min-width:0}
   .aidisc button{font-size:11.5px;font-weight:600;color:var(--ink-2);background:var(--paper);
     border:1px solid var(--line);border-radius:999px;padding:5px 11px;flex:none}
   .gear{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;background:var(--card);flex:none}
@@ -102,17 +109,31 @@
     display:grid;place-items:center}
   .ledehint{font-size:12.5px;line-height:1.5;color:#9DB0A8;border-top:1px solid rgba(255,255,255,.12);padding-top:11px}
   .ledehint b{color:#8FD3BC;font-weight:650}
+  .ledeswitch{color:#9DB0A8;margin:9px 0 0}
+  .ledeswitch b{color:#F1EFEA}
+  .ledeswitch button{color:#8FD3BC}
 
-  /* ---------- linear patient flow: numbered steps, one continuous page ---------- */
-  .step{padding-top:34px;scroll-margin-top:44px}
-  .stepno{display:flex;align-items:center;gap:8px;font-size:11.5px;letter-spacing:.13em;
-    text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:10px}
-  .stepno i{width:19px;height:19px;border-radius:50%;background:var(--accent);color:#fff;
-    font-style:normal;font-size:11px;display:grid;place-items:center;letter-spacing:0}
-  .fwd{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:22px;
-    background:var(--accent-soft);border:1px solid #CBE2D8;border-radius:14px;padding:14px;
-    font-size:14.5px;font-weight:650;color:var(--accent)}
-  .fwd:hover{background:#DDEBE5}
+  /* ---------- the conversation IS the container ----------
+     Every surface the patient sees — the results list, a finding explainer, a
+     referral, a refusal — is a turn in one thread. There is no second place to
+     be, so there is no navigation. Rich cards are messages that happen to be
+     wide. */
+  #thread{display:flex;flex-direction:column;gap:12px;padding:18px 0 14px}
+  .cardmsg{align-self:stretch;max-width:100%}
+  .explainer{align-self:stretch;background:var(--card);border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow);padding:17px;
+    animation:up .24s cubic-bezier(.2,.8,.25,1)}
+  .exphead{display:flex;align-items:center;gap:9px;margin-bottom:11px}
+  .expregion{font-size:12.5px;color:var(--muted);font-weight:650;letter-spacing:.02em}
+  .explainer h3{font-size:20px;line-height:1.25;margin-bottom:14px}
+  .expfollow{width:100%;margin-top:14px;border:1px solid var(--line);border-radius:12px;
+    padding:11px;font-size:14px;font-weight:650;color:var(--accent);background:var(--paper)}
+  .expfollow:hover{border-color:var(--accent)}
+  .suggest{align-self:stretch}
+
+  /* ---------- the dock: the peek bar and the composer, always in reach ---------- */
+  .dock{flex:none;background:var(--paper);border-top:1px solid var(--line);padding-bottom:var(--safe-b)}
+  .dock .composer{margin:10px 0 12px}
   .edgesub{font-size:12.5px;color:var(--muted);line-height:1.5;margin:-4px 0 10px}
   .chiphead.edgehead{color:var(--amber);margin-top:16px}
 
@@ -156,17 +177,7 @@
   .col .eng{font-family:var(--serif);font-size:18px;line-height:1.35;color:var(--ink)}
   .more{margin-top:11px;font-size:13px;font-weight:650;color:var(--accent)}
 
-  /* ---------- detail sheet ---------- */
-  #sheet{position:fixed;inset:0;z-index:70;background:rgba(19,30,26,.4);backdrop-filter:blur(3px);
-    display:none;align-items:flex-end;justify-content:center}
-  #sheet.on{display:flex}
-  #sheetbox{background:var(--paper);width:100%;max-width:760px;max-height:94dvh;overflow-y:auto;
-    border-radius:24px 24px 0 0;padding:0 18px calc(30px + var(--safe-b));
-    animation:up .28s cubic-bezier(.2,.8,.25,1);-webkit-overflow-scrolling:touch}
-  @keyframes up{from{transform:translateY(40px);opacity:.4}to{transform:none;opacity:1}}
-  .sheettop{position:sticky;top:0;background:var(--paper);padding:14px 0 12px;z-index:2;
-    display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--line);margin-bottom:18px}
-  .sheettop .back{font-size:14px;font-weight:650;color:var(--accent);display:flex;align-items:center;gap:5px}
+  @keyframes up{from{transform:translateY(10px);opacity:0}to{transform:none;opacity:1}}
   .grip{width:38px;height:4px;border-radius:2px;background:var(--line);margin:8px auto 0}
 
   .navsays{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
@@ -254,7 +265,6 @@
   .chip.edge:hover{border-color:var(--amber);color:var(--amber)}
   .chiphead{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);font-weight:700;margin:4px 0 9px}
 
-  #thread{display:flex;flex-direction:column;gap:12px;margin-bottom:18px}
   .msg{max-width:88%;padding:12px 15px;border-radius:18px;font-size:15px;line-height:1.6;white-space:pre-wrap}
   .msg.me{align-self:flex-end;background:var(--ink);color:#F1EFEA;border-bottom-right-radius:6px}
   .msg.nav{align-self:flex-start;background:var(--card);border:1px solid var(--line);
@@ -352,8 +362,8 @@
   .objbox .k{color:#8FD3BC}.objbox .s{color:#E5C87A}
 
   /* ---------- the peek-inside bar: one affordance, every screen ---------- */
-  #nav{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(19,30,26,.96);
-    backdrop-filter:blur(12px);border-top:1px solid #24352F;padding-bottom:var(--safe-b);display:none}
+  #nav{flex:none;z-index:50;background:rgba(19,30,26,.96);
+    backdrop-filter:blur(12px);border-top:1px solid #24352F;display:none}
   #nav.on{display:block}
   #nav .inner{max-width:760px;margin:0 auto;display:grid;grid-template-columns:1fr;padding:0 18px}
   .nb{padding:11px 0 12px;display:flex;align-items:center;gap:11px;text-align:left;color:#DCE9E3}
@@ -527,6 +537,7 @@
 
 <!-- ============ APP ============ -->
 <main id="app">
+  <div class="apptop">
   <div class="wrap">
     <header class="apphead">
       <div class="av" id="headAv"></div>
@@ -547,67 +558,27 @@
          scan was reviewed and released by a licensed radiologist first.</p>
       <button onclick="alert('Demo only — no clinician is contacted.\n\nIn the live product this opens a same-day callback with the clinical team.')">Talk to a person</button>
     </div>
+  </div>
+  </div>
 
-    <!-- ORIENTATION — the first ten seconds. Someone landing cold from an
-         emailed link should know what they are looking at and what to do,
-         before they read a single clinical word. -->
-    <section class="lede" id="lede">
-      <p class="eyebrow">Interactive demo · 2 minutes</p>
-      <h1>What a patient sees when their MRI comes back.</h1>
-      <p class="ledep">Jordan Reyes, 44, scanned 12 March. His radiologist has read and released the
-      results — everything below is the patient's own screen.</p>
-      <ol class="ledesteps">
-        <li><b>Read the results</b> — ordered by the urgency the radiologist stated.</li>
-        <li><b>Tap a finding</b> — plain language, the report's words, the next step.</li>
-        <li><b>Ask a question</b> — including one it is not allowed to answer.</li>
-      </ol>
-      <p class="ledehint"><b>See how this works</b>, at the bottom of every screen, opens the live
-      trace of whatever you just did.</p>
-    </section>
+  <!-- THE THREAD — everything the patient sees is a turn in here -->
+  <div class="appscroll" id="appscroll">
+  <div class="wrap">
+    <div id="thread"></div>
+  </div>
+  </div>
 
-    <!-- STEP 1 — RESULTS -->
-    <section class="step" id="tab-results">
-      <p class="stepno"><i>1</i> Your results</p>
-      <h2 class="screen">Your scan results</h2>
-      <p class="sub">Eight areas reviewed. Ordered by the urgency your radiologist stated — not by a score we calculated.</p>
-      <p class="navintro">Explained by <b id="introName">Eva</b> · <button id="introSwitch" type="button">prefer a different tone? switch anytime →</button></p>
-      <div id="relbanner"></div>
-      <div id="reslist">
-        <div class="summary">
-          <div class="sbox r"><b>1</b><span>Needs attention</span></div>
-          <div class="sbox a"><b>2</b><span>Monitor</span></div>
-          <div class="sbox g"><b>5</b><span>Normal</span></div>
-        </div>
-        <div class="flist" id="flist"></div>
+  <div class="dock">
+    <nav id="nav">
+      <div class="inner">
+        <button class="nb" id="sysOpen" data-tab="flow">
+          <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="6" rx="1.5"/><rect x="14" y="15" width="7" height="6" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/><path d="M6.5 9v6M10 18h4M17.5 15V9H6.5"/></svg>
+          <span class="nbt"><b>See how this works</b><em id="navCtx">the guardrails, the trace, the model boundary</em></span>
+          <span class="nbc">↗</span>
+        </button>
       </div>
-      <div class="hold" id="reshold" hidden>
-        <h3>Your results are with your radiologist</h3>
-        <p>Your scan has been read and your plain-language version is drafted. It is now with
-        <b id="holdWho"></b> for review. Until they release it, no urgency is shown, nothing is
-        recommended, and no referral is shown to you.</p>
-        <p>You'll be notified the moment it's released — usually the same working day. If anything
-        feels urgent before then, your navigator will still put you straight through to a person.</p>
-        <p class="why"><b>Why the wait exists.</b> How urgent each finding is, and which specialist
-        you should see, are clinical decisions. Your radiologist makes them, we surface their words
-        and the guideline-cited next step, and they review the wording the navigator will use before
-        it reaches you. The software never rates your findings itself — its job is to draft and
-        explain, not to decide, and not to release.</p>
-      </div>
-      <button class="fwd" id="toAsk">Next — ask <span class="navnm"></span> about any of this <b>↓</b></button>
-    </section>
-
-    <!-- STEP 2 — ASK. Part of the same linear flow, not a separate destination. -->
-    <section class="step" id="tab-ask">
-      <p class="stepno"><i>2</i> Ask a question</p>
-      <h2 class="screen">Ask <span class="navnm"></span></h2>
-      <p class="sub">Anything you want, any time. Here are the questions people ask most.</p>
-      <p class="chiphead">Common questions</p>
-      <div class="chips" id="chipsCommon"></div>
-      <p class="chiphead edgehead">Now try to break it &nbsp;—&nbsp; questions a navigator must refuse</p>
-      <p class="edgesub">These are the interesting ones. Each is stopped by ordinary code before the
-      language model is ever called — and you can watch that happen.</p>
-      <div class="chips" id="chipsEdge"></div>
-      <div id="thread"></div>
+    </nav>
+    <div class="wrap">
       <div class="composer">
         <label for="inp" class="sr">Your message</label>
         <textarea id="inp" rows="1" placeholder="Type your question…"></textarea>
@@ -615,16 +586,67 @@
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </button>
       </div>
-    </section>
-
-    <footer>
-      Illustrative demo built for evaluation purposes. Jordan Reyes is a fictional person and every
-      finding, measurement and report phrase on this page is invented. Nothing here is medical advice.
-      Responses are pre-written so the demo behaves identically every time; the live product generates
-      them from the patient's own report.
-    </footer>
+    </div>
   </div>
 </main>
+
+
+<!-- Card stock. These are real nodes, not templates: the navigator MOVES them
+     into the thread as it says things, so renderResults() and the release gate
+     keep writing to the same ids they always did. -->
+<div id="stage" hidden>
+
+  <div class="lede cardmsg" id="lede">
+    <p class="eyebrow">Interactive demo · 2 minutes</p>
+    <h1>What a patient sees when their MRI comes back.</h1>
+    <p class="ledep">Jordan Reyes, 44, scanned 12 March. His radiologist has read and released the
+    results — everything below is the patient's own conversation with their navigator.</p>
+    <ol class="ledesteps">
+      <li><b>Read the results</b> — ordered by the urgency the radiologist stated.</li>
+      <li><b>Tap a finding</b> — plain language, the report's words, the next step.</li>
+      <li><b>Ask a question</b> — including one it is not allowed to answer.</li>
+    </ol>
+    <p class="ledehint"><b>See how this works</b>, under the conversation, opens the live trace of
+    whatever just happened.</p>
+    <p class="navintro ledeswitch">Explained by <b id="introName">Eva</b> · <button id="introSwitch" type="button">prefer a different tone? switch anytime →</button></p>
+  </div>
+
+  <div class="cardmsg" id="relbanner"></div>
+
+  <div class="cardmsg" id="resultscard">
+    <div id="reslist">
+      <div class="summary">
+        <div class="sbox r"><b>1</b><span>Needs attention</span></div>
+        <div class="sbox a"><b>2</b><span>Monitor</span></div>
+        <div class="sbox g"><b>5</b><span>Normal</span></div>
+      </div>
+      <div class="flist" id="flist"></div>
+    </div>
+    <div class="hold" id="reshold" hidden>
+      <h3>Your results are with your radiologist</h3>
+      <p>Your scan has been read and your plain-language version is drafted. It is now with
+      <b id="holdWho"></b> for review. Until they release it, no urgency is shown, nothing is
+      recommended, and no referral is shown to you.</p>
+      <p>You'll be notified the moment it's released — usually the same working day. If anything
+      feels urgent before then, your navigator will still put you straight through to a person.</p>
+      <p class="why"><b>Why the wait exists.</b> How urgent each finding is, and which specialist
+      you should see, are clinical decisions. Your radiologist makes them, we surface their words
+      and the guideline-cited next step, and they review the wording the navigator will use before
+      it reaches you. The software never rates your findings itself — its job is to draft and
+      explain, not to decide, and not to release.</p>
+    </div>
+  </div>
+
+  <div class="suggest" id="suggest">
+    <p class="chiphead">Common questions</p>
+    <div class="chips" id="chipsCommon"></div>
+    <p class="chiphead edgehead">Now try to break it &nbsp;—&nbsp; questions a navigator must refuse</p>
+    <p class="edgesub">These are the interesting ones. Each is stopped by ordinary code before the
+    language model is ever called — and you can watch that happen.</p>
+    <div class="chips" id="chipsEdge"></div>
+  </div>
+
+</div>
 
 <!-- ============ SYSTEM VIEW — the secondary layer.
      One slide-over panel, opened by one affordance that is present on every
@@ -861,18 +883,6 @@
   </div>
 </aside>
 
-<!-- the one secondary affordance, present on every screen of the patient flow -->
-<nav id="nav">
-  <div class="inner">
-    <button class="nb" id="sysOpen" data-tab="flow">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="6" rx="1.5"/><rect x="14" y="15" width="7" height="6" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/><path d="M6.5 9v6M10 18h4M17.5 15V9H6.5"/></svg>
-      <span class="nbt"><b>See how this works</b><em id="navCtx">the guardrails, the trace, the model boundary</em></span>
-      <span class="nbc">↗</span>
-    </button>
-  </div>
-</nav>
-
-<div id="sheet"><div id="sheetbox"></div></div>
 
 <div id="settings">
   <div class="box">
@@ -1330,6 +1340,51 @@ function start(p){
   setPersona(p);
   $("#app").classList.add("on");
   $("#nav").classList.add("on");
+  seedThread();
+}
+
+/* =====================================================================
+   THE CONVERSATION IS THE CONTAINER.
+   There is one surface — the thread — and everything is a turn in it: the
+   navigator's greeting, the release status, the results list, a finding
+   explainer, a referral, a refusal, an escalation. Tapping a finding is not
+   navigation, it is the patient asking about it, so it posts their message
+   and the navigator answers underneath.
+
+   ponytail: the rich cards are static DOM nodes parked in #stage and MOVED
+   into the thread, not re-templated. renderResults() and the release gate go
+   on writing to #relbanner / #flist / #reshold exactly as before, and a card
+   that is in the thread updates in place. Ceiling: this is a single-session
+   transcript with no persistence — the day the demo needs to resume where a
+   patient left off, the thread needs to be data rather than DOM.
+   ===================================================================== */
+const stage = id => document.getElementById(id);
+const say = html => bubble("msg nav", `<span class="navname">${VOICE[persona].name}</span>${html}`);
+const card = id => { const e = stage(id); e.hidden = false; $("#thread").appendChild(e); return e; };
+
+/* quick replies ride at the end of the thread and move down with it */
+function postSuggestions(){ card("suggest"); }
+
+function seedThread(){
+  $("#thread").innerHTML = "";
+  const v = VOICE[persona], g = releaseGate();
+  card("lede");
+  say(`Hi Jordan — I'm ${v.name}, your navigator. Your whole-body MRI from 12 March has been read.`);
+  card("relbanner");
+  if (g.released){
+    say(`${RELEASE.by} reviewed every word of this before it reached you. Here's what they found, `
+      + `in the order <em>they</em> said it mattered — tap any of them and I'll explain it properly.`);
+    card("resultscard");
+  } else {
+    say(`I can't show you what's in it yet — it's with ${RELEASE.by} for review. Here's where that stands.`);
+    card("resultscard");
+    say(`I'll tell you the moment it's released. If anything feels urgent before then, say so and `
+      + `I'll put you straight through to a person.`);
+  }
+  postSuggestions();
+  // the seeded turns each scrolled themselves into view — start the visitor at
+  // the top of the conversation, where the navigator opened it
+  $("#appscroll").scrollTop = 0;
 }
 
 function setPersona(p){
@@ -1343,8 +1398,9 @@ function setPersona(p){
   $$(".asknm").forEach(e => e.textContent = "Ask " + v.name);
   $("#inp").placeholder = `Ask ${v.name} anything…`;
   renderProve();
-  // an already-open detail sheet re-renders in the new voice
-  if ($("#sheet").classList.contains("on") && openFinding) openDetail(openFinding);
+  // what has already been said stays said — a transcript that silently
+  // rewrites itself is a worse demo of "same facts, different voice" than one
+  // where you ask again and watch the next answer arrive in the other voice
 }
 
 /* ---- results list — gated on clinician release ---- */
@@ -1386,10 +1442,23 @@ function renderResults(){
 function setRelease(state){
   RELEASE.state = state;
   // same rule as the list: an unreleased finding is emptied out of the DOM,
-  // not merely hidden behind a class
-  if (state !== "released"){ closeSheet(); $("#sheetbox").innerHTML = ""; }
+  // not merely hidden behind a class. In a thread that means retracting every
+  // explainer already said — released substance cannot survive its own release
+  // being withdrawn just because it has scrolled up.
+  if (state !== "released"){
+    openFinding = null;
+    $$(".explainer").forEach(e => e.remove());
+  }
   ingestDone = false;                 // the flow graph re-runs ingest against the new gate
   renderResults();
+  if ($("#thread") && $("#thread").children.length){
+    say(state === "released"
+      ? `${RELEASE.by} has just released your results — here they are.`
+      : `Your results have been pulled back for review by ${RELEASE.by}. I've taken down what I'd `
+        + `said about them until that's finished.`);
+    card("resultscard");
+    postSuggestions();
+  }
   renderProve();                      // the parity panes are gated too — see renderProve
   if (typeof resetGraph === "function"){ resetGraph(false); fstat("idle"); }
   const held = state !== "released";
@@ -1415,24 +1484,40 @@ function paintFindings(){
   $$(".fcard").forEach(b => b.onclick = () => openDetail(b.dataset.f));
 }
 
-/* ---- detail sheet ---- */
+/* ---- a finding, explained in the thread ---- */
 let openFinding = null;
+
+/* tapping a finding IS the patient asking about it: their message goes up, the
+   navigator types, and the explainer arrives as the reply */
 function openDetail(id){
   const f = FINDINGS.find(x => x.id === id);
-  const v = VOICE[persona];
   // the gate is enforced on the read path too, not only by hiding the list
+  if (!f || busy || !releaseGate().released) return;
+  busy = true;
+  bubble("msg me", `Tell me about the ${f.region.toLowerCase()} finding`);
+  const typing = bubble("typing", "<i></i><i></i><i></i>");
+  setTimeout(() => {
+    typing.remove();
+    renderDetail(id);
+    peek("", "See how that explanation was assembled");
+    postSuggestions();
+    busy = false;
+  }, 520);
+}
+
+function renderDetail(id){
+  const f = FINDINGS.find(x => x.id === id);
+  const v = VOICE[persona];
   if (!f || !releaseGate().released) return;
   const nextG = sourceGuard(f.nextSrc);
   const refG  = f.referral ? sourceGuard(f.referral.src) : null;
   openFinding = id;
-  $("#sheetbox").innerHTML = `
-    <div class="grip"></div>
-    <div class="sheettop">
-      <button class="back" id="backBtn">← &nbsp;Results</button>
-      <span class="pill ${f.level}" style="margin-left:auto">${f.label}</span>
+  const box = bubble("explainer", `
+    <div class="exphead">
+      <span class="pill ${f.level}">${f.label}</span>
+      <span class="expregion">${f.region}</span>
     </div>
-    <p class="eyebrow">${f.region}</p>
-    <h2 class="screen" style="margin-bottom:16px">${f.plain}</h2>
+    <h3>${f.plain}</h3>
 
     <div class="clinbox">
       <label>Word-for-word from your report</label>
@@ -1479,15 +1564,14 @@ function openDetail(id){
       <div class="body">${v.outro[f.level]}</div>
     </div>
 
-    <button class="cta" style="background:var(--ink);color:#F1EFEA;margin-top:14px" id="askAbout">Ask ${v.name} about this</button>
-  `;
-  $("#sheet").classList.add("on");
-  $("#sheetbox").scrollTop = 0;
-  $("#backBtn").onclick = closeSheet;
-  $("#askAbout").onclick = () => { closeSheet(); go("ask"); };
+    <button class="expfollow" id="askAbout">Ask ${v.name} a follow-up about this →</button>
+  `);
+  box.querySelector("#askAbout").onclick = () => {
+    $("#inp").value = `About my ${f.region.toLowerCase()} — `;
+    $("#inp").dispatchEvent(new Event("input"));
+    $("#inp").focus();
+  };
 }
-function closeSheet(){ $("#sheet").classList.remove("on"); openFinding = null; }
-$("#sheet").onclick = e => { if (e.target.id === "sheet") closeSheet(); };
 
 /* ---- navigation ----
    The patient layer is ONE linear page — results, finding sheet, chat — so
@@ -1508,17 +1592,19 @@ function closeSys(){
   $("#sys").setAttribute("aria-hidden", "true");
   document.body.classList.remove("sysopen");
 }
+/* There is nowhere to navigate to any more — everything is in the thread. This
+   survives as the one named jump the demo still needs: open the system view, or
+   scroll the conversation to the results card or to the live end of it. */
 function go(tab){
   if (tab === "flow") return openSys();
   closeSys();
-  const el = $("#tab-" + tab);
-  if (el) el.scrollIntoView({ behavior:"smooth", block:"start" });
+  const el = tab === "results" ? $("#resultscard") : $("#thread").lastElementChild;
+  if (el) el.scrollIntoView({ behavior:"smooth", block:"nearest" });
 }
 $$(".nb").forEach(b => b.onclick = () => go(b.dataset.tab));
 $("#sysClose").onclick = closeSys;
 $("#sys").onclick = e => { if (e.target.id === "sys") closeSys(); };
-document.addEventListener("keydown", e => { if (e.key === "Escape"){ closeSys(); closeSheet(); } });
-$("#toAsk").onclick = () => { go("ask"); setTimeout(() => $("#inp").focus({preventScroll:true}), 420); };
+document.addEventListener("keydown", e => { if (e.key === "Escape") closeSys(); });
 
 /* what the system view is currently tracing — the connection between what the
    patient just did and what the system did is the whole argument, so it is
@@ -1617,6 +1703,7 @@ function send(text, forced){
       bubble("msg nav", `<span class="navname">${VOICE[persona].name}</span>${FALLBACK[persona]}`);
       peek("", "See what just happened inside");
     }
+    postSuggestions();               // the quick replies always ride at the live end
     busy = false;
   }, 620);
 }
@@ -2165,7 +2252,10 @@ $("#fBreakSrc").onclick = e => {
   e.currentTarget.setAttribute("aria-pressed", String(!s.verified));
   e.currentTarget.textContent = s.verified ? "⚠ Break a cited source" : "✓ Restore the cited source";
   ingestDone = false;
-  if (openFinding) openDetail(openFinding);      // an open sheet re-validates live
+  // an explainer already in the thread was rendered against the old source
+  // state — retract it rather than let a stale referral sit in the transcript
+  $$(".explainer").forEach(e => e.remove());
+  openFinding = null;
   const audit = recommendationAudit();
   flog("rec_guard", s.verified
     ? `${BREAKABLE_SRC} re-verified — all ${audit.total} recommendations sourced`
@@ -2212,8 +2302,8 @@ $("#fBoth").onclick = async () => {
 
 /* boot — a default persona is picked automatically; no forced choice screen */
 paintSettings();
-start("eva");
 renderResults();
+start("eva");
 renderProve();
 
 /* self-check: every scripted answer must pass fact parity, or the demo
@@ -2271,7 +2361,7 @@ renderProve();
     must("held: no finding card is reachable", !document.querySelector(".fcard"));
     must("held: no referral is on the page", !document.querySelector(".referral"));
     must("held: opening a finding directly is refused",
-      (openDetail("kidney"), document.querySelector("#sheet").classList.contains("on") === false));
+      (openDetail("kidney"), document.querySelectorAll(".explainer").length === 0));
     RELEASE.state = prev;
     renderResults();
     must("released: the results list comes back",
