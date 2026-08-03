@@ -138,6 +138,18 @@
   .expfollow{width:100%;margin-top:14px;border:1px solid var(--line);border-radius:12px;
     padding:11px;font-size:14px;font-weight:650;color:var(--accent);background:var(--paper)}
   .expfollow:hover{border-color:var(--accent)}
+  /* the follow-ups the finding itself offers — the rest of the answer, on request */
+  .expchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:15px;
+    padding-top:14px;border-top:1px solid var(--line)}
+  .expchips .chip{margin:0}
+  /* the report's own words are proof, not the answer — collapsed by default */
+  .clindet{margin-top:13px;border:1px solid var(--line);border-radius:12px;background:var(--paper)}
+  .clindet>summary{cursor:pointer;padding:10px 13px;font-size:12.5px;font-weight:650;
+    color:var(--muted);letter-spacing:.02em;list-style:none}
+  .clindet>summary::-webkit-details-marker{display:none}
+  .clindet>summary::after{content:" ▸";opacity:.55}
+  .clindet[open]>summary::after{content:" ▾"}
+  .clindet>*:not(summary){margin:0 13px 12px}
   .suggest{align-self:stretch}
 
   /* ---------- the dock: the peek bar and the composer, always in reach ---------- */
@@ -229,6 +241,12 @@
   .relbar .rl{flex:1;min-width:0}
   .relbar b{display:block;font-size:13.5px;margin-bottom:3px}
   .relbar p{font-size:12.5px;color:var(--ink-2);line-height:1.5}
+  .relbar .relnote>summary{font-size:12px;font-weight:650;color:var(--accent);cursor:pointer;
+    margin-top:4px;list-style:none}
+  .relbar .relnote>summary::-webkit-details-marker{display:none}
+  .relbar .relnote>summary::after{content:" ▸";opacity:.6}
+  .relbar .relnote[open]>summary::after{content:" ▾"}
+  .relbar .relnote p{margin-top:5px}
   .relbtn{font-size:11.5px;font-weight:700;letter-spacing:.02em;color:var(--ink-2);border:1px solid var(--line);
     background:var(--card);border-radius:999px;padding:7px 12px;flex:none;max-width:112px;line-height:1.25}
   .relbtn:active{background:var(--paper)}
@@ -563,8 +581,8 @@
     </header>
 
     <div class="aidisc">
-      <p>This was written by an AI assistant, not by a clinician. Every word about your
-         scan was reviewed and released by a licensed radiologist first.</p>
+      <p>Written by an AI assistant, not by a clinician. Every word was reviewed and released
+         by a licensed radiologist first.</p>
       <button onclick="alert('Demo only — no clinician is contacted.\n\nIn the live product this opens a same-day callback with the clinical team.')">Talk to a person</button>
     </div>
   </div>
@@ -641,11 +659,6 @@
       recommended, and no referral is shown to you.</p>
       <p>You'll be notified the moment it's released — usually the same working day. If anything
       feels urgent before then, your navigator will still put you straight through to a person.</p>
-      <p class="why"><b>Why the wait exists.</b> How urgent each finding is, and which specialist
-      you should see, are clinical decisions. Your radiologist makes them, we surface their words
-      and the guideline-cited next step, and they review the wording the navigator will use before
-      it reaches you. The software never rates your findings itself — its job is to draft and
-      explain, not to decide, and not to release.</p>
     </div>
   </div>
 
@@ -1441,9 +1454,8 @@ function revealWhoRead(){
   const typing = bubble("typing", "<i></i><i></i><i></i>");
   setTimeout(() => {
     typing.remove();
-    say(`${RELEASE.by}, ${RELEASE.role.toLowerCase()}. Nothing I say about your scan reaches you `
-      + `until they've reviewed, revised and released it — that's what makes this their words `
-      + `rather than a machine's opinion. I'll show you their release note with the results.`);
+    say(`${RELEASE.by}, ${RELEASE.role.toLowerCase()}. They read it, and they signed off on `
+      + `everything I'm about to tell you — so these are their words, not mine.`);
     postSuggestions();
     busy = false;
   }, 620);
@@ -1491,8 +1503,8 @@ function renderResults(){
     ? `<div class="relbar" id="relbar">
          <div class="rl">
            <b>✓ Reviewed and released by ${RELEASE.by}</b>
-           <p>${RELEASE.role} · ${RELEASE.at} · ${RELEASE.edits} edits before release. The urgency and
-           the referral are your radiologist's, not the model's. ${RELEASE.note}</p>
+           <p>${RELEASE.role} · ${RELEASE.at} · ${RELEASE.edits} edits before release.</p>
+           <details class="relnote"><summary>What they changed</summary><p>${RELEASE.note}</p></details>
          </div>
          <button class="relbtn" id="relToggle">Demo: hold release</button>
        </div>`
@@ -1580,55 +1592,34 @@ function openDetail(id){
   setTimeout(() => {
     typing.remove();
     renderDetail(id);
-    peek("", "See how that explanation was assembled");
-    postSuggestions();
     busy = false;
   }, 520);
 }
 
-function renderDetail(id){
-  const f = FINDINGS.find(x => x.id === id);
-  const v = VOICE[persona];
-  if (!f || !releaseGate().released) return;
+/* A finding is not a document. It arrives the way a person would tell it —
+   the headline, the navigator's read of it, what the thing actually is — and
+   everything after that is a question the patient chose to ask. Three of them,
+   in the order people actually ask them, each its own turn.
+   ponytail: the steps are data, not three near-identical render functions. */
+const DETAIL_STEPS = [
+  { q:"What does that mean for me?",
+    a:f => `<div class="qa"><h4>What it likely means</h4><p>${f.means}</p></div>
+            <div class="qa not"><h4>What it does <em>not</em> mean</h4><p>${f.notmeans}</p></div>` },
+  { q:"How common is this?",
+    a:f => `<div class="qa"><h4>How common is this?</h4><p>${f.common}</p></div>` },
+  { q:"What happens next?", a:nextStepHtml },
+];
+
+/* the guarded end of the answer: the next step, the referral, and the sign-off */
+function nextStepHtml(f){
   const nextG = sourceGuard(f.nextSrc);
   const refG  = f.referral ? sourceGuard(f.referral.src) : null;
-  openFinding = id;
-  const box = bubble("explainer", `
-    <div class="exphead">
-      <span class="pill ${f.level}">${f.label}</span>
-      <span class="expregion">${f.region}</span>
-    </div>
-    <h3>${f.plain}</h3>
-
-    <div class="clinbox">
-      <label>Word-for-word from your report</label>
-      <div class="clin">${f.clinical}</div>
-    </div>
-
-    <div class="clinbox">
-      <label>How urgent your radiologist said this is</label>
-      <div class="clin">“${f.stated.quote}”</div>
-      ${citeHtml(f.stated.src)}
-      <p class="said" style="margin:9px 0 0">This is your radiologist's own wording, not a score we
-      calculated. We don't rate your findings — we show you what they said, in the order they
-      said it mattered, and the next step the guidelines attach to it.</p>
-    </div>
-
-    <div class="navsays">
-      ${av(persona)}
-      <div class="body"><b class="nm">${v.name}:</b> ${v.intro[f.level]}</div>
-    </div>
-
-    <div class="qa"><h4>What it actually is</h4><p>${f.what}</p></div>
-    <div class="qa"><h4>What it likely means</h4><p>${f.means}</p></div>
-    <div class="qa not"><h4>What it does <em>not</em> mean</h4><p>${f.notmeans}</p></div>
-    <div class="qa"><h4>How common is this?</h4><p>${f.common}</p></div>
-    ${nextG.pass
+  const v = VOICE[persona];
+  return (nextG.pass
       ? `<div class="qa next"><h4>What happens next</h4><p>${f.next}</p>${citeHtml(f.nextSrc)}</div>`
-      : withheldHtml("What happens next", nextG)}
-
-    ${f.referral && !refG.pass ? withheldHtml(`${f.referral.who} referral`, refG) : ""}
-    ${f.referral && refG.pass ? `
+      : withheldHtml("What happens next", nextG))
+    + (f.referral && !refG.pass ? withheldHtml(`${f.referral.who} referral`, refG) : "")
+    + (f.referral && refG.pass ? `
     <div class="referral">
       <p class="eyebrow">Recommended referral</p>
       <h3>${f.referral.who}</h3>
@@ -1637,17 +1628,74 @@ function renderDetail(id){
       <button class="cta" onclick="alert('Demo only — no booking is made.\\n\\nIn the live product this opens scheduling with a partner urologist and attaches the report and images to the appointment.')">${f.referral.cta}</button>
       <button class="cta ghost" onclick="alert('Demo only.\\n\\nIn the live product this sends your full report and image set to the specialist ahead of the appointment.')">Send my report ahead</button>
       ${citeHtml(f.referral.src)}
-      <p class="refnote">Reviewed and released by ${RELEASE.by} on ${RELEASE.at}. A recommendation, not a diagnosis — your clinician decides.</p>
-    </div>` : ""}
+      <p class="refnote">Released by ${RELEASE.by}, ${RELEASE.at}. A recommendation, not a diagnosis.</p>
+    </div>` : "")
+    + `<div class="navsays" style="margin-top:16px">
+         ${av(persona)}<div class="body">${v.outro[f.level]}</div>
+       </div>`;
+}
 
-    <div class="navsays" style="margin-top:16px">
+function renderDetail(id){
+  const f = FINDINGS.find(x => x.id === id);
+  const v = VOICE[persona];
+  if (!f || !releaseGate().released) return;
+  openFinding = id;
+  detailTurn(f, `
+    <div class="exphead">
+      <span class="pill ${f.level}">${f.label}</span>
+      <span class="expregion">${f.region}</span>
+    </div>
+    <h3>${f.plain}</h3>
+
+    <div class="navsays">
       ${av(persona)}
-      <div class="body">${v.outro[f.level]}</div>
+      <div class="body"><b class="nm">${v.name}:</b> ${v.intro[f.level]}</div>
     </div>
 
-    <button class="expfollow" id="askAbout">Ask ${v.name} a follow-up about this →</button>
-  `);
-  box.querySelector("#askAbout").onclick = () => {
+    <div class="qa"><h4>What it actually is</h4><p>${f.what}</p></div>
+
+    <details class="clindet">
+      <summary>Your radiologist's own words</summary>
+      <div class="clin">${f.clinical}</div>
+      <div class="clin">“${f.stated.quote}”</div>
+      ${citeHtml(f.stated.src)}
+    </details>
+  `, DETAIL_STEPS);
+}
+
+/* one turn of a finding: the answer, then whatever is still worth asking.
+   Retracting a release removes .explainer nodes, so every turn wears the class. */
+function detailTurn(f, html, steps){
+  const v = VOICE[persona];
+  const box = bubble("explainer", html + (steps.length
+    ? `<div class="expchips">${steps.map((s, i) =>
+        `<button class="chip" data-step="${i}">${s.q}</button>`).join("")}</div>`
+    : `<button class="expfollow">Ask ${v.name} a follow-up about this →</button>`));
+
+  box.querySelectorAll("[data-step]").forEach(b => b.onclick = () => {
+    if (busy) return;
+    busy = true;
+    const s = steps[+b.dataset.step];
+    box.querySelector(".expchips").remove();     // asked is asked — don't offer it twice
+    bubble("msg me", s.q);
+    const typing = bubble("typing", "<i></i><i></i><i></i>");
+    setTimeout(() => {
+      typing.remove();
+      const left = steps.filter(x => x !== s);
+      detailTurn(f, s.a(f), left);
+      // the finding's own follow-ups, the peek and the general quick replies
+      // must not stack up as three competing menus. The peek and the general
+      // replies come back once the finding has nothing left to offer.
+      if (!left.length){
+        peek("", "See how that explanation was assembled");
+        postSuggestions();
+      }
+      busy = false;
+    }, 480);
+  });
+
+  const ask = box.querySelector(".expfollow");
+  if (ask) ask.onclick = () => {
     $("#inp").value = `About my ${f.region.toLowerCase()} — `;
     $("#inp").dispatchEvent(new Event("input"));
     $("#inp").focus();
