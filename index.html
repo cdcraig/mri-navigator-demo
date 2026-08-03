@@ -84,9 +84,37 @@
   .gear{width:38px;height:38px;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;background:var(--card);flex:none}
   .gear:active{background:var(--paper)}
 
-  .tabbody{padding-top:20px}
   h2.screen{font-size:26px;margin-bottom:6px}
   .sub{color:var(--muted);font-size:14.5px;margin-bottom:18px}
+
+  /* ---------- orientation card: the first ten seconds ---------- */
+  .lede{background:linear-gradient(160deg,#1B3A31,#0F1C18);color:#F1EFEA;border-radius:var(--radius);
+    padding:19px 18px;margin-top:18px;box-shadow:var(--shadow-lift)}
+  .lede .eyebrow{color:#8FD3BC;margin-bottom:10px}
+  .lede h1{font-size:23px;line-height:1.2;color:#fff;margin-bottom:9px}
+  @media(min-width:560px){ .lede h1{font-size:27px} }
+  .lede .ledep{font-size:14px;line-height:1.55;color:#C9D6D0}
+  .ledesteps{list-style:none;counter-reset:s;margin:13px 0 12px;display:flex;flex-direction:column;gap:7px}
+  .ledesteps li{counter-increment:s;position:relative;padding-left:30px;font-size:14px;line-height:1.5;color:#C9D6D0}
+  .ledesteps li b{color:#fff;font-weight:650}
+  .ledesteps li::before{content:counter(s);position:absolute;left:0;top:1px;width:20px;height:20px;
+    border-radius:50%;background:rgba(143,211,188,.16);color:#8FD3BC;font-size:11px;font-weight:700;
+    display:grid;place-items:center}
+  .ledehint{font-size:12.5px;line-height:1.5;color:#9DB0A8;border-top:1px solid rgba(255,255,255,.12);padding-top:11px}
+  .ledehint b{color:#8FD3BC;font-weight:650}
+
+  /* ---------- linear patient flow: numbered steps, one continuous page ---------- */
+  .step{padding-top:34px;scroll-margin-top:44px}
+  .stepno{display:flex;align-items:center;gap:8px;font-size:11.5px;letter-spacing:.13em;
+    text-transform:uppercase;color:var(--muted);font-weight:700;margin-bottom:10px}
+  .stepno i{width:19px;height:19px;border-radius:50%;background:var(--accent);color:#fff;
+    font-style:normal;font-size:11px;display:grid;place-items:center;letter-spacing:0}
+  .fwd{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:22px;
+    background:var(--accent-soft);border:1px solid #CBE2D8;border-radius:14px;padding:14px;
+    font-size:14.5px;font-weight:650;color:var(--accent)}
+  .fwd:hover{background:#DDEBE5}
+  .edgesub{font-size:12.5px;color:var(--muted);line-height:1.5;margin:-4px 0 10px}
+  .chiphead.edgehead{color:var(--amber);margin-top:16px}
 
   /* ---------- summary strip ---------- */
   .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:22px}
@@ -251,6 +279,15 @@
   .handoff p{font-size:13.5px;color:var(--ink-2);line-height:1.5;margin-bottom:10px}
   .handoff button{background:var(--accent);color:#fff;font-size:13.5px;font-weight:650;padding:9px 16px;border-radius:10px}
 
+  /* the peek-inside affordance, surfaced at the exact moment it earns attention */
+  .peek{align-self:flex-start;max-width:88%}
+  .peek button{display:flex;align-items:center;gap:8px;font-size:13px;font-weight:650;color:#DCE9E3;
+    background:var(--ink);border:1px solid #24352F;border-radius:999px;padding:9px 15px;line-height:1.3;text-align:left}
+  .peek button:hover{background:#0A1512;color:#8FD3BC}
+  .peek button i{font-style:normal;color:#8FD3BC}
+  .peek.hot button{border-color:var(--amber);box-shadow:0 0 0 3px rgba(242,184,75,.16)}
+  .peek.hot button i{color:var(--amber)}
+
   .composer{display:flex;gap:8px;align-items:flex-end;background:var(--card);border:1px solid var(--line);
     border-radius:16px;padding:8px 8px 8px 14px;box-shadow:var(--shadow)}
   .composer textarea{flex:1;border:none;outline:none;resize:none;font:inherit;font-size:15px;
@@ -286,30 +323,66 @@
   .hl .pane mark.f{background:#FFF0B8;border-radius:3px;padding:1px 3px;
     box-shadow:inset 0 -1.5px 0 rgba(196,150,0,.4);color:var(--ink);font-weight:550}
 
+  /* held state: show the SHAPE of what is being withheld, never the substance.
+     A blank panel reads as broken; a redacted one teaches the release model. */
+  .pane.redacted{background:repeating-linear-gradient(135deg,#FBF9F5,#FBF9F5 9px,#F5F2EC 9px,#F5F2EC 18px)}
+  .pane.redacted .ph{opacity:.55}
+  .rdl{display:flex;flex-direction:column;gap:9px}
+  .rd{display:block;height:11px;border-radius:3px;background:#DFDAD1}
+  .rd.f{background:#EBDCBB;box-shadow:inset 0 -1.5px 0 rgba(196,150,0,.25)}
+  .rdcap{font-size:11.5px;color:var(--amber);font-weight:650;margin-top:12px;letter-spacing:.01em}
+
   .verdict{margin-bottom:14px;border-radius:16px;padding:15px 16px;font-size:14px;line-height:1.6}
   .verdict.ok{background:var(--green-soft);border:1px solid #CBE2D8;color:#1E5C43}
   .verdict.bad{background:var(--red-soft);border:1px solid #F0D9D5;color:var(--red)}
-  .verdict b{display:block;font-size:14.5px;margin-bottom:5px}
+  .verdict > b{display:block;font-size:14.5px;margin-bottom:5px}
   .verdict ul{margin:9px 0 0 17px;font-size:13.5px}
   .verdict li{margin-bottom:3px}
   .verdict code{font-family:var(--mono);font-size:12.5px;background:rgba(0,0,0,.05);padding:1px 5px;border-radius:4px}
+  .verdict p{margin-bottom:9px}
+  .relnow{display:block;width:100%;margin-top:6px;background:var(--amber);color:#fff;font-weight:700;
+    font-size:14.5px;padding:12px;border-radius:12px;text-align:center;line-height:1.35}
+  .relnow:hover{filter:brightness(1.06)}
+  .verdict.held{background:var(--amber-soft);border:1px solid #EEDCC0;color:var(--amber)}
+  .verdict.held p{color:var(--ink-2)}
 
   .objbox{margin-top:14px;background:var(--ink);color:#C9D6D0;border-radius:16px;padding:15px 16px;overflow-x:auto}
   .objbox label{display:block;font-size:10px;letter-spacing:.09em;text-transform:uppercase;color:#8FD3BC;font-weight:700;margin-bottom:8px}
   .objbox pre{font-family:var(--mono);font-size:11.5px;line-height:1.6;white-space:pre}
   .objbox .k{color:#8FD3BC}.objbox .s{color:#E5C87A}
 
-  /* ---------- bottom nav ---------- */
-  #nav{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(247,245,241,.93);
-    backdrop-filter:blur(12px);border-top:1px solid var(--line);padding-bottom:var(--safe-b);display:none}
+  /* ---------- the peek-inside bar: one affordance, every screen ---------- */
+  #nav{position:fixed;left:0;right:0;bottom:0;z-index:50;background:rgba(19,30,26,.96);
+    backdrop-filter:blur(12px);border-top:1px solid #24352F;padding-bottom:var(--safe-b);display:none}
   #nav.on{display:block}
-  /* column count must match the number of .nb buttons or the last one wraps */
-  #nav .inner{max-width:760px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr)}
-  .nb{padding:10px 4px 11px;display:flex;flex-direction:column;align-items:center;gap:3px;
-    font-size:11px;font-weight:600;color:var(--muted);letter-spacing:.01em}
-  .nb svg{width:21px;height:21px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-  .nb[aria-current="true"]{color:var(--accent)}
-  .nb .badge{position:absolute;transform:translate(13px,-4px);width:7px;height:7px;border-radius:50%;background:var(--red)}
+  #nav .inner{max-width:760px;margin:0 auto;display:grid;grid-template-columns:1fr;padding:0 18px}
+  .nb{padding:11px 0 12px;display:flex;align-items:center;gap:11px;text-align:left;color:#DCE9E3}
+  .nb svg{width:20px;height:20px;stroke:#8FD3BC;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;flex:none}
+  .nb .nbt{flex:1;min-width:0;line-height:1.25}
+  .nb .nbt b{display:block;font-size:14px;font-weight:650}
+  .nb .nbt em{display:block;font-style:normal;font-size:11.5px;color:#8FA79C;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .nb .nbc{color:#8FD3BC;font-size:15px;flex:none}
+  .nb:hover .nbt b{color:#8FD3BC}
+
+  /* ---------- system view: slide-over panel ---------- */
+  #sys{position:fixed;inset:0;z-index:75;background:rgba(9,16,14,.5);backdrop-filter:blur(3px);
+    display:none;justify-content:flex-end}
+  #sys.on{display:flex}
+  .sysinner{background:var(--paper);width:100%;max-width:920px;height:100%;overflow-y:auto;overflow-x:hidden;
+    -webkit-overflow-scrolling:touch;animation:slidein .3s cubic-bezier(.2,.8,.25,1);
+    box-shadow:-24px 0 60px -20px rgba(0,0,0,.4)}
+  @keyframes slidein{from{transform:translateX(40px);opacity:.3}to{transform:none;opacity:1}}
+  .systop{position:sticky;top:0;z-index:3;background:var(--ink);color:#F1EFEA;
+    display:flex;align-items:center;gap:12px;padding:13px 18px}
+  .systop .st-t{flex:1;min-width:0}
+  .systop b{display:block;font-size:14.5px;font-weight:650}
+  .systop span{display:block;font-size:11.5px;color:#9DB0A8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .systop button{font-size:12.5px;font-weight:650;color:#F1EFEA;border:1px solid rgba(255,255,255,.22);
+    border-radius:999px;padding:7px 13px;flex:none}
+  .systop button:hover{background:rgba(255,255,255,.1)}
+  #tab-flow{padding:18px 18px calc(28px + var(--safe-b))}
+  .syslead{font-size:15px;color:var(--ink-2);line-height:1.55}
+  body.sysopen{overflow:hidden}
 
   /* ---------- settings sheet ---------- */
   #settings{position:fixed;inset:0;z-index:80;background:rgba(19,30,26,.4);display:none;align-items:flex-end;justify-content:center}
@@ -475,8 +548,26 @@
       <button onclick="alert('Demo only — no clinician is contacted.\n\nIn the live product this opens a same-day callback with the clinical team.')">Talk to a person</button>
     </div>
 
-    <!-- RESULTS -->
-    <section class="tabbody" id="tab-results">
+    <!-- ORIENTATION — the first ten seconds. Someone landing cold from an
+         emailed link should know what they are looking at and what to do,
+         before they read a single clinical word. -->
+    <section class="lede" id="lede">
+      <p class="eyebrow">Interactive demo · 2 minutes</p>
+      <h1>What a patient sees when their MRI comes back.</h1>
+      <p class="ledep">Jordan Reyes, 44, scanned 12 March. His radiologist has read and released the
+      results — everything below is the patient's own screen.</p>
+      <ol class="ledesteps">
+        <li><b>Read the results</b> — ordered by the urgency the radiologist stated.</li>
+        <li><b>Tap a finding</b> — plain language, the report's words, the next step.</li>
+        <li><b>Ask a question</b> — including one it is not allowed to answer.</li>
+      </ol>
+      <p class="ledehint"><b>See how this works</b>, at the bottom of every screen, opens the live
+      trace of whatever you just did.</p>
+    </section>
+
+    <!-- STEP 1 — RESULTS -->
+    <section class="step" id="tab-results">
+      <p class="stepno"><i>1</i> Your results</p>
       <h2 class="screen">Your scan results</h2>
       <p class="sub">Eight areas reviewed. Ordered by the urgency your radiologist stated — not by a score we calculated.</p>
       <p class="navintro">Explained by <b id="introName">Eva</b> · <button id="introSwitch" type="button">prefer a different tone? switch anytime →</button></p>
@@ -502,18 +593,19 @@
         it reaches you. The software never rates your findings itself — its job is to draft and
         explain, not to decide, and not to release.</p>
       </div>
-      <footer>
-        Illustrative demo built for evaluation purposes. Jordan Reyes is a fictional person and every finding, measurement and report phrase on this page is invented. Nothing here is medical advice.
-      </footer>
+      <button class="fwd" id="toAsk">Next — ask <span class="navnm"></span> about any of this <b>↓</b></button>
     </section>
 
-    <!-- ASK -->
-    <section class="tabbody" id="tab-ask" hidden>
+    <!-- STEP 2 — ASK. Part of the same linear flow, not a separate destination. -->
+    <section class="step" id="tab-ask">
+      <p class="stepno"><i>2</i> Ask a question</p>
       <h2 class="screen">Ask <span class="navnm"></span></h2>
       <p class="sub">Anything you want, any time. Here are the questions people ask most.</p>
       <p class="chiphead">Common questions</p>
       <div class="chips" id="chipsCommon"></div>
-      <p class="chiphead">Testing the edges &nbsp;—&nbsp; what a navigator must refuse</p>
+      <p class="chiphead edgehead">Now try to break it &nbsp;—&nbsp; questions a navigator must refuse</p>
+      <p class="edgesub">These are the interesting ones. Each is stopped by ordinary code before the
+      language model is ever called — and you can watch that happen.</p>
       <div class="chips" id="chipsEdge"></div>
       <div id="thread"></div>
       <div class="composer">
@@ -523,14 +615,35 @@
           <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
         </button>
       </div>
-      <footer>Responses in this demo are pre-written so it behaves identically every time. The live product generates them from the patient's own report.</footer>
     </section>
 
-    <!-- PROVE IT -->
-    <!-- ============ HOW IT WORKS — AGENT FLOW VISUALIZER ============ -->
-    <section class="tabbody" id="tab-flow" hidden>
-      <h2 class="screen">How it works</h2>
-      <p class="sub">Every message the patient sends travels through this graph. The dashed box is the language model. <strong>Every guardrail sits outside it.</strong></p>
+    <footer>
+      Illustrative demo built for evaluation purposes. Jordan Reyes is a fictional person and every
+      finding, measurement and report phrase on this page is invented. Nothing here is medical advice.
+      Responses are pre-written so the demo behaves identically every time; the live product generates
+      them from the patient's own report.
+    </footer>
+  </div>
+</main>
+
+<!-- ============ SYSTEM VIEW — the secondary layer.
+     One slide-over panel, opened by one affordance that is present on every
+     screen of the patient flow. It is deliberately a panel over the patient
+     surface rather than a sibling tab: you are looking behind the curtain of
+     what you were just doing, and the thing you were doing is still there
+     behind it. ============ -->
+<aside id="sys" aria-hidden="true">
+  <div class="sysinner" role="dialog" aria-modal="true" aria-label="How this works — system view">
+    <div class="systop">
+      <div class="st-t">
+        <b>Behind the curtain</b>
+        <span id="sysCtx">the system view — send a question and this traces it live</span>
+      </div>
+      <button id="sysClose" aria-label="Close the system view">Close ✕</button>
+    </div>
+
+    <section id="tab-flow">
+      <p class="sub syslead">Every message the patient sends — including the one you just sent — travels through this graph. The dashed box is the language model. <strong>Every guardrail sits outside it.</strong></p>
 
       <div class="sysbox">
         <div class="syshead">
@@ -746,18 +859,15 @@
       <footer>The trace above is real: the same guard functions that run in the chat drive this diagram, and the claim validator re-checks the rendered answer against the shared clinical result object every time. Node timings are illustrative. Both answers in the "see it in plain text" panel above are rendered from that same shared clinical result object — the persona layer has no access to the facts themselves, so the medical substance cannot diverge.</footer>
     </section>
   </div>
-</main>
+</aside>
 
+<!-- the one secondary affordance, present on every screen of the patient flow -->
 <nav id="nav">
   <div class="inner">
-    <button class="nb" data-tab="results" aria-current="true">
-      <svg viewBox="0 0 24 24"><path d="M3 12h4l3 8 4-16 3 8h4"/></svg>Results
-    </button>
-    <button class="nb" data-tab="ask">
-      <svg viewBox="0 0 24 24"><path d="M21 11.5a8.4 8.4 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.4 8.4 0 0 1-3.8-.9L3 21l1.9-5.7a8.4 8.4 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.4 8.4 0 0 1 3.8-.9h.5a8.5 8.5 0 0 1 8 8z"/></svg><span class="asknm">Ask</span>
-    </button>
-    <button class="nb" data-tab="flow">
-      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="6" rx="1.5"/><rect x="14" y="15" width="7" height="6" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/><path d="M6.5 9v6M10 18h4M17.5 15V9H6.5"/></svg>How it works
+    <button class="nb" id="sysOpen" data-tab="flow">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="6" rx="1.5"/><rect x="14" y="15" width="7" height="6" rx="1.5"/><rect x="3" y="15" width="7" height="6" rx="1.5"/><path d="M6.5 9v6M10 18h4M17.5 15V9H6.5"/></svg>
+      <span class="nbt"><b>See how this works</b><em id="navCtx">the guardrails, the trace, the model boundary</em></span>
+      <span class="nbc">↗</span>
     </button>
   </div>
 </nav>
@@ -1379,13 +1489,44 @@ function openDetail(id){
 function closeSheet(){ $("#sheet").classList.remove("on"); openFinding = null; }
 $("#sheet").onclick = e => { if (e.target.id === "sheet") closeSheet(); };
 
-/* ---- tabs ---- */
+/* ---- navigation ----
+   The patient layer is ONE linear page — results, finding sheet, chat — so
+   there is no navigation decision inside it. The only choice on the whole
+   screen is the secondary one: look behind the curtain, or carry on. That is
+   a single panel, opened from a single affordance that never moves. */
+function openSys(){
+  // the fictional-patient badge is compliance furniture, not decoration: the
+  // panel opens BELOW it rather than over it
+  $("#sys").style.top = $("#demobar").offsetHeight + "px";
+  $("#sys").classList.add("on");
+  $("#sys").setAttribute("aria-hidden", "false");
+  document.body.classList.add("sysopen");
+  $(".sysinner").scrollTop = 0;
+}
+function closeSys(){
+  $("#sys").classList.remove("on");
+  $("#sys").setAttribute("aria-hidden", "true");
+  document.body.classList.remove("sysopen");
+}
 function go(tab){
-  ["results","ask","flow"].forEach(t => $("#tab-" + t).hidden = (t !== tab));
-  $$(".nb").forEach(b => b.setAttribute("aria-current", b.dataset.tab === tab));
-  window.scrollTo(0,0);
+  if (tab === "flow") return openSys();
+  closeSys();
+  const el = $("#tab-" + tab);
+  if (el) el.scrollIntoView({ behavior:"smooth", block:"start" });
 }
 $$(".nb").forEach(b => b.onclick = () => go(b.dataset.tab));
+$("#sysClose").onclick = closeSys;
+$("#sys").onclick = e => { if (e.target.id === "sys") closeSys(); };
+document.addEventListener("keydown", e => { if (e.key === "Escape"){ closeSys(); closeSheet(); } });
+$("#toAsk").onclick = () => { go("ask"); setTimeout(() => $("#inp").focus({preventScroll:true}), 420); };
+
+/* what the system view is currently tracing — the connection between what the
+   patient just did and what the system did is the whole argument, so it is
+   named in both the affordance and the panel header rather than left implied */
+function setTrace(label){
+  $("#sysCtx").textContent = label;
+  $("#navCtx").textContent = label;
+}
 
 /* ---- chat ---- */
 const chipHtml = a => `<button class="chip ${a.kind === "edge" ? "edge" : ""}" data-a="${a.id}">${a.chip}</button>`;
@@ -1448,9 +1589,11 @@ function send(text, forced){
 
   setTimeout(() => {
     typing.remove();
+    const g = inputGuard(strip(text));
     if (a && a.escalate){
       bubble("escalate", `<b>⚠ Seek care now</b><p>${a[persona]}</p>
         <button class="cta" onclick="alert('Demo only — no call is placed.\\n\\nIn the live product this dials emergency services and simultaneously alerts the clinical team.')">Call emergency services</button>`);
+      peek("hot", "See the emergency path — the model was never called");
     } else if (!releaseGate().released){
       /* the same gate, on the conversational surface: pre-release the navigator
          will not discuss findings. The emergency path above is deliberately
@@ -1460,17 +1603,30 @@ function send(text, forced){
         That review is what makes these results yours to act on rather than a machine's opinion —
         it's usually the same working day. If anything feels urgent, I'll get you to a person now.</p>
         <button onclick="alert('Demo only — no clinician is contacted.\\n\\nIn the live product this opens a same-day callback with the clinical team.')">Talk to a person now</button>`);
+      peek("hot", "See why nothing was released");
     } else if (a){
       bubble("msg nav", `<span class="navname">${VOICE[persona].name}</span>${a[persona]}`);
       if (a.handoff){
         bubble("handoff", `<b>Talk to a person</b><p>This is the kind of question a human clinician should answer. ${VOICE[persona].name} can hand you over now.</p>
           <button onclick="alert('Demo only — no clinician is contacted.\\n\\nIn the live product this opens a same-day callback with the clinical team and passes the full conversation across so you never repeat yourself.')">Connect me with a clinician</button>`);
       }
+      peek(g.pass ? "" : "hot", g.pass
+        ? "See what just happened inside"
+        : `See why this was blocked before the model — rule ${g.rule.id}`);
     } else {
       bubble("msg nav", `<span class="navname">${VOICE[persona].name}</span>${FALLBACK[persona]}`);
+      peek("", "See what just happened inside");
     }
     busy = false;
   }, 620);
+}
+
+/* The peek-inside affordance, surfaced beside the answer it explains. The
+   blocked path is the most persuasive thing in this demo, so it gets the
+   loud variant and names the rule that stopped it. */
+function peek(kind, label){
+  const d = bubble("peek" + (kind ? " " + kind : ""), `<button><i>◆</i>${label} →</button>`);
+  d.querySelector("button").onclick = openSys;
 }
 
 const inp = $("#inp");
@@ -1542,16 +1698,31 @@ function renderProve(){
      that radiologist has released it. Emptied out of the DOM, not hidden
      behind a class. */
   if (!releaseGate().released){
-    $("#panes").innerHTML = "";
+    /* Show the SHAPE of what is being withheld, never the substance. A blank
+       panel reads as a broken demo; a redacted one teaches the release model
+       and puts the way forward in the same place as the disappointment. */
+    const W = [96,74,88,62,91,70];
+    const bars = `<div class="rdl">${
+      W.map((w,i) => `<span class="rd${i % 3 === 1 ? " f" : ""}" style="width:${w}%"></span>`).join("")
+    }</div><p class="rdcap">${a.facts.length} clinical facts withheld</p>`;
+    $("#panes").innerHTML = ["eva","evan"].map(p => `
+      <div class="pane redacted">
+        <div class="ph">${av(p)}<div><b>${VOICE[p].name}</b><br><span>${VOICE[p].tone}</span></div></div>
+        <div class="txt">${bars}</div>
+      </div>`).join("");
     $("#objbox").innerHTML = "";
     $("#verdict").innerHTML = `
-      <div class="verdict bad">
-        <b>⏸ Held until your results are released</b>
-        Both navigators answer from one clinical result object — and that object
-        does not exist for a patient until ${RELEASE.by} has reviewed and released it.
-        Nothing here is shown before then, including on this screen.
-        Use <b>Demo: release it</b> on the results tab to see the comparison run.
+      <div class="verdict held">
+        <b>⏸ Both voices are ready. The facts are not.</b>
+        <p>Eva and Evan render from one shared clinical result object, and for a patient that object
+        does not exist until <b>${RELEASE.by}</b> has reviewed and released it. So both panes below
+        keep their name, their tone and their structure — and have nothing to say. The
+        <b>${a.facts.length} clinical facts</b> behind this answer, the stated urgency and the
+        referral are all held back.</p>
+        <p>That is the gate working, not an empty screen. Advance it and watch the comparison run:</p>
+        <button class="relnow" id="proveRelease">▶ Sign off as ${RELEASE.by} — then watch both panes fill in</button>
       </div>`;
+    $("#proveRelease").onclick = () => setRelease("released");
     return;
   }
 
@@ -1772,26 +1943,43 @@ let injectBad = false;
 let lastRun = null;
 let running = false;
 
+/* A newer message SUPERSEDES an in-flight trace rather than being dropped.
+   The panel's whole job is to show what the system did with the question you
+   just asked — a trace of the question before it is worse than no trace. Each
+   run carries a token; the moment a newer run starts, the older one returns at
+   its next await without touching a node. */
+let runToken = 0;
+
 async function runFlow(text, answer){
-  if (running) return;
+  const me = ++runToken;
+  const stale = () => runToken !== me;
+  const w = async ms => { await wait(ms); return stale(); };
+  const finish = () => { if (!stale()) running = false; };
   running = true;
   lastRun = { text, answer };
-  await runIngest();
-  resetGraph(true);
-  fclock = 0; $("#fLog").innerHTML = "";
 
   const guard = inputGuard(text);
   const short = text.length > 44 ? text.slice(0, 44) + "…" : text;
-
+  /* Named BEFORE the ingest lane animates, not after. Ingest takes a few
+     seconds and a visitor opens the panel within one — the header must already
+     say which message it is tracing, or the connection between what they just
+     did and what the system did is lost exactly when they go looking for it. */
+  setTrace(`tracing “${short}”`);
   fstat("running", "warn");
+
+  await runIngest();
+  if (stale()) return;
+  resetGraph(true);
+  fclock = 0; $("#fLog").innerHTML = "";
+
   setNode("msg","on", short);
   flog("inbound", `patient message · ${text.length} chars · persona=${VOICE[persona].name}`);
-  setLink("mg","on"); await wait(520);
+  setLink("mg","on"); if (await w(520)) return;
   setNode("msg","done","received");
 
   setNode("gin","on","classifying intent · 3 rule families");
   flog("input_guard", "evaluating URG / MED / DX rules — deterministic, no model call");
-  await wait(680);
+  if (await w(680)) return;
 
   /* ---- (c) urgent symptom: bypass everything ---- */
   if (!guard.pass && guard.rule.action === "urgent"){
@@ -1802,38 +1990,38 @@ async function runFlow(text, answer){
     flog("model", "NOT INVOKED — pipeline bypassed entirely", "e");
     setNode("shared","dim","not reached"); setNode("eva","dim","not reached");
     setNode("evan","dim","not reached"); setNode("gout","dim","not reached");
-    await wait(640);
+    if (await w(640)) return;
     setLink("ge","bad");
     setNode("esc","bad","emergency guidance returned · clinician paged");
     flog("escalation", "tier-1 emergency path — seek-care-now guidance, clinical team paged", "e");
-    await wait(600);
+    if (await w(600)) return;
     setLink("ea","bad");
     setNode("audit","warn","urgent_symptom · model_invoked=false");
     flog("audit_log", "written · outcome=emergency_escalation · model_invoked=false");
     fstat("escalated — urgent", "bad");
-    running = false; return;
+    finish(); return;
   }
 
   /* ---- (b) blocked: stops dead OUTSIDE the model ---- */
   if (!guard.pass){
     setNode("gin","bad", `${guard.rule.id} matched “${guard.hit}” → BLOCK`);
     flog("input_guard", `${guard.rule.id} ${guard.rule.label} matched “${guard.hit}” → BLOCK`, "e");
-    setLink("mg","done"); await wait(420);
+    setLink("mg","done"); if (await w(420)) return;
     setLink("gs","off");
     gSvg().classList.add("xblock","bnever");
     flog("model", "NOT INVOKED — the request never crossed the boundary", "e");
     setNode("shared","dim","not reached"); setNode("eva","dim","not reached");
     setNode("evan","dim","not reached"); setNode("gout","dim","not reached");
-    await wait(760);
+    if (await w(760)) return;
     setLink("ge","bad");
     setNode("esc","bad","routed to clinician queue");
     flog("escalation", "queued for licensed clinician · patient told plainly why", "e");
-    await wait(580);
+    if (await w(580)) return;
     setLink("ea","bad");
     setNode("audit","warn", `${guard.rule.id} · blocked_before_model=true`);
     flog("audit_log", `written · rule=${guard.rule.id} · blocked_before_model=true`);
     fstat("blocked before the model", "bad");
-    running = false; return;
+    finish(); return;
   }
 
   /* ---- (a2) results not released: the model is never asked about findings.
@@ -1842,7 +2030,7 @@ async function runFlow(text, answer){
   if (!releaseGate().released){
     setNode("gin","done","no rule matched · PASS");
     flog("input_guard", "no rule matched · PASS");
-    setLink("mg","done"); await wait(380);
+    setLink("mg","done"); if (await w(380)) return;
     setNode("hcp","bad","HELD — nothing released");
     setLink("gs","off");
     gSvg().classList.add("xblock","bnever");
@@ -1850,46 +2038,46 @@ async function runFlow(text, answer){
     flog("model", "NOT INVOKED — there is nothing the patient is cleared to be told", "e");
     setNode("shared","dim","not released"); setNode("eva","dim","not reached");
     setNode("evan","dim","not reached"); setNode("gout","dim","not reached");
-    await wait(620);
+    if (await w(620)) return;
     setLink("ge","bad");
     setNode("esc","bad","held · clinician review pending");
     flog("escalation", "patient told plainly why, and offered a person immediately", "e");
-    await wait(520);
+    if (await w(520)) return;
     setLink("ea","bad");
     setNode("audit","warn","release_gate=HELD · model_invoked=false");
     flog("audit_log", "written · release_gate=HELD · model_invoked=false");
     fstat("held — awaiting clinician release", "bad");
-    running = false; return;
+    finish(); return;
   }
 
   /* ---- (a) happy path ---- */
   setNode("gin","done","no rule matched · PASS");
   flog("input_guard", "no rule matched · PASS");
-  setLink("mg","done"); setLink("gs","on"); await wait(500);
+  setLink("mg","done"); setLink("gs","on"); if (await w(500)) return;
 
   const facts = (answer && answer.facts) ? answer.facts : [];
   setNode("shared","on", facts.length ? `${facts.length} approved facts` : "no matching record");
   flog("shared_obj", answer ? `resolved “${answer.id}” · ${facts.length} approved clinical facts`
                             : "no scripted record matched — graceful fallback path");
-  await wait(560);
+  if (await w(560)) return;
   setNode("shared","done", facts.length ? `${facts.length} facts released` : "fallback");
   setLink("gs","done");
 
   gSvg().classList.add("blive");
   const act = persona, oth = persona === "eva" ? "evan" : "eva";
-  setLink(act === "eva" ? "se" : "sev", "on"); await wait(420);
+  setLink(act === "eva" ? "se" : "sev", "on"); if (await w(420)) return;
   setNode(act,"on","applying tone · facts locked");
   setNode(oth,"dim","not called");
   flog("persona_" + act, `rendering in ${VOICE[act].tone.toLowerCase()} register · fact set immutable`);
-  await wait(660);
+  if (await w(660)) return;
   setNode(act,"done","rendered");
   setLink(act === "eva" ? "se" : "sev", "done");
   setLink(act === "eva" ? "eg" : "evg", "on");
-  await wait(430);
+  if (await w(430)) return;
 
   setNode("gout","on","validating every claim against the shared object");
   flog("output_guard", "diffing rendered clinical claims against the approved fact set");
-  await wait(700);
+  if (await w(700)) return;
 
   const rendered = answer ? answer[act] : "";
   let verdict = answer ? outputGuard(rendered, facts) : { pass:true, checked:0, unsupported:[] };
@@ -1905,15 +2093,15 @@ async function runFlow(text, answer){
     setLink(act === "eva" ? "eg" : "evg", "bad");
     setLink("go","off");
     $("#regenL").setAttribute("opacity","1"); setLink("regen","bad");
-    await wait(880);
+    if (await w(880)) return;
     setNode(act,"warn","regenerating · attempt 2");
     flog("persona_" + act, "regenerating from the shared clinical result object", "w");
     gSvg().classList.add("blive");
-    await wait(720);
+    if (await w(720)) return;
     setLink("regen", null); $("#regenL").setAttribute("opacity","0");
     setNode(act,"done","rendered · attempt 2");
     setLink(act === "eva" ? "eg" : "evg", "on");
-    await wait(400);
+    if (await w(400)) return;
     verdict = outputGuard(rendered, facts);
     setNode("gout","done", `attempt 2 · ${verdict.checked}/${verdict.checked} matched · PASS`);
     flog("output_guard", "attempt 2 PASS · 0 unsupported claims");
@@ -1927,17 +2115,17 @@ async function runFlow(text, answer){
   }
 
   setLink(act === "eva" ? "eg" : "evg", "done");
-  setLink("go","on"); await wait(400);
-  setNode("out","on","delivered to patient"); await wait(360);
+  setLink("go","on"); if (await w(400)) return;
+  setNode("out","on","delivered to patient"); if (await w(360)) return;
   setNode("out","done","delivered");
   setLink("go","done"); setLink("oa","on");
   setNode("audit","on", `in=PASS · out=PASS · persona=${VOICE[act].name}`);
   flog("audit_log", `written · guards in=PASS out=PASS · persona=${VOICE[act].name}`);
-  await wait(320);
+  if (await w(320)) return;
   setLink("oa","done");
   setNode("audit","done","in=PASS · out=PASS");
   fstat("complete");
-  running = false;
+  finish();
 }
 
 /* ---- system-view controls ---- */
@@ -1988,25 +2176,29 @@ $("#fBreakSrc").onclick = e => {
 /* both personas, one shared object — the graph half of the Prove-it argument */
 $("#fBoth").onclick = async () => {
   if (running) return;
+  const me = ++runToken;                 // same supersede rule as a live message
+  const w = async ms => { await wait(ms); return runToken !== me; };
   running = true;
   await runIngest();
+  if (runToken !== me) return;
   resetGraph(true);
   fclock = 0; $("#fLog").innerHTML = "";
   const a = ANSWERS.find(x => x.id === "kidney") || ANSWERS[0];
   const n = a.facts.length;
+  setTrace("both personas rendered from one shared object");
   gSvg().classList.add("blive");
   setNode("shared","done", `${n} approved facts · one source`);
   flog("shared_obj", `one clinical result object · ${n} approved facts`);
-  setLink("se","on"); setLink("sev","on"); await wait(520);
+  setLink("se","on"); setLink("sev","on"); if (await w(520)) return;
   setNode("eva","on","warm register · 0 facts added");
   setNode("evan","on","direct register · 0 facts added");
   flog("prove", "both renderers invoked from the SAME shared object");
-  await wait(660);
+  if (await w(660)) return;
   setLink("se","done"); setLink("sev","done");
   setLink("eg","on"); setLink("evg","on");
   const rE = outputGuard(a.eva, a.facts), rN = outputGuard(a.evan, a.facts);
   const same = JSON.stringify(marksIn(a.eva).slice().sort()) === JSON.stringify(marksIn(a.evan).slice().sort());
-  await wait(520);
+  if (await w(520)) return;
   setNode("gout", (rE.pass && rN.pass && same) ? "done" : "bad",
     `${rE.checked} + ${rN.checked} claims · identical=${same} · ${(rE.pass && rN.pass) ? "PASS" : "REJECT"}`);
   flog("output_guard", `both outputs validated against the same fact set · identical=${same} · ${(rE.pass && rN.pass && same) ? "PASS" : "REJECT"}`,
@@ -2015,7 +2207,7 @@ $("#fBoth").onclick = async () => {
   setNode("out","done","both variants deliverable");
   setNode("audit","done","persona_compare · facts_identical=" + same);
   fstat(same ? "identical facts, two voices" : "divergence!", same ? "" : "bad");
-  running = false;
+  if (runToken === me) running = false;
 };
 
 /* boot — a default persona is picked automatically; no forced choice screen */
