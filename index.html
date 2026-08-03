@@ -109,6 +109,15 @@
     display:grid;place-items:center}
   .ledehint{font-size:12.5px;line-height:1.5;color:#9DB0A8;border-top:1px solid rgba(255,255,255,.12);padding-top:11px}
   .ledehint b{color:#8FD3BC;font-weight:650}
+  /* the orientation card opens collapsed — a cold visitor gets the headline and
+     one line, and the how-it-works detail only if they want it */
+  .ledemore{margin-top:12px;border-top:1px solid rgba(255,255,255,.12);padding-top:10px}
+  .ledemore summary{font-size:12.5px;font-weight:650;color:#8FD3BC;cursor:pointer;list-style:none}
+  .ledemore summary::-webkit-details-marker{display:none}
+  .ledemore summary::after{content:" ▾"}
+  .ledemore[open] summary::after{content:" ▴"}
+  .ledemore .ledesteps{margin-top:12px}
+  .ledemore .ledehint{border-top:none;padding-top:0}
   .ledeswitch{color:#9DB0A8;margin:9px 0 0}
   .ledeswitch b{color:#F1EFEA}
   .ledeswitch button{color:#8FD3BC}
@@ -599,16 +608,19 @@
   <div class="lede cardmsg" id="lede">
     <p class="eyebrow">Interactive demo · 2 minutes</p>
     <h1>What a patient sees when their MRI comes back.</h1>
-    <p class="ledep">Jordan Reyes, 44, scanned 12 March. His radiologist has read and released the
-    results — everything below is the patient's own conversation with their navigator.</p>
-    <ol class="ledesteps">
-      <li><b>Read the results</b> — ordered by the urgency the radiologist stated.</li>
-      <li><b>Tap a finding</b> — plain language, the report's words, the next step.</li>
-      <li><b>Ask a question</b> — including one it is not allowed to answer.</li>
-    </ol>
-    <p class="ledehint"><b>See how this works</b>, under the conversation, opens the live trace of
-    whatever just happened.</p>
-    <p class="navintro ledeswitch">Explained by <b id="introName">Eva</b> · <button id="introSwitch" type="button">prefer a different tone? switch anytime →</button></p>
+    <p class="ledep">Jordan Reyes, 44, scanned 12 March. Everything below is his own conversation
+    with his navigator.</p>
+    <details class="ledemore">
+      <summary>How this demo works</summary>
+      <ol class="ledesteps">
+        <li><b>Read the results</b> — ordered by the urgency the radiologist stated.</li>
+        <li><b>Tap a finding</b> — plain language, the report's words, the next step.</li>
+        <li><b>Ask a question</b> — including one it is not allowed to answer.</li>
+      </ol>
+      <p class="ledehint"><b>See how this works</b>, under the conversation, opens the live trace of
+      whatever just happened.</p>
+      <p class="navintro ledeswitch">Explained by <b id="introName">Eva</b> · <button id="introSwitch" type="button">prefer a different tone? switch anytime →</button></p>
+    </details>
   </div>
 
   <div class="cardmsg" id="relbanner"></div>
@@ -638,12 +650,23 @@
   </div>
 
   <div class="suggest" id="suggest">
-    <p class="chiphead">Common questions</p>
-    <div class="chips" id="chipsCommon"></div>
-    <p class="chiphead edgehead">Now try to break it &nbsp;—&nbsp; questions a navigator must refuse</p>
-    <p class="edgesub">These are the interesting ones. Each is stopped by ordinary code before the
-    language model is ever called — and you can watch that happen.</p>
-    <div class="chips" id="chipsEdge"></div>
+    <div id="openWrap">
+      <p class="chiphead">Where would you like to start?</p>
+      <div class="chips" id="chipsOpen">
+        <button class="chip" data-reveal="results">Show me my results</button>
+        <button class="chip" data-reveal="who">Who read my scan?</button>
+      </div>
+    </div>
+    <div id="commonWrap" hidden>
+      <p class="chiphead">Common questions</p>
+      <div class="chips" id="chipsCommon"></div>
+    </div>
+    <div id="edgeWrap" hidden>
+      <p class="chiphead edgehead">Now try to break it &nbsp;—&nbsp; questions a navigator must refuse</p>
+      <p class="edgesub">These are the interesting ones. Each is stopped by ordinary code before the
+      language model is ever called — and you can watch that happen.</p>
+      <div class="chips" id="chipsEdge"></div>
+    </div>
   </div>
 
 </div>
@@ -1362,25 +1385,83 @@ const stage = id => document.getElementById(id);
 const say = html => bubble("msg nav", `<span class="navname">${VOICE[persona].name}</span>${html}`);
 const card = id => { const e = stage(id); e.hidden = false; $("#thread").appendChild(e); return e; };
 
+/* Progressive disclosure. The opening screen is a greeting and two things to
+   say — no results, no findings, no guardrail menu. Each stage is unlocked by
+   the conversation reaching it, never by a timer:
+     open   → the patient has not asked for anything yet
+     common → the results are on screen, so ordinary questions make sense
+     all    → a question has been answered, so the guardrail set is worth showing
+   ponytail: three booleans' worth of state expressed as one string. A stage
+   machine with transitions would be more code than the thing it models. */
+let chatStage = "open";
+const revealed = { results:false };
+
+function suggestStage(s){
+  chatStage = s;
+  $("#openWrap").hidden   = s !== "open";
+  $("#commonWrap").hidden = s === "open";
+  $("#edgeWrap").hidden   = s !== "all";
+}
+
 /* quick replies ride at the end of the thread and move down with it */
 function postSuggestions(){ card("suggest"); }
+
+/* the results arrive because the patient asked for them, not because the page
+   loaded — which is also how it would work if a real person were carrying this
+   conversation */
+function revealResults(){
+  if (busy) return;
+  busy = true;
+  bubble("msg me", "Show me my results");
+  const typing = bubble("typing", "<i></i><i></i><i></i>");
+  setTimeout(() => {
+    typing.remove();
+    const g = releaseGate();
+    if (g.released){
+      say(`${RELEASE.by} reviewed and released these. Eight areas were looked at: one needs `
+        + `attention, two are worth keeping an eye on, five were normal. They're in the order `
+        + `<em>they</em> ranked them — tap any one and I'll explain it properly.`);
+    } else {
+      say(`I can't show you what's in it yet — it's with ${RELEASE.by} for review. Here's where `
+        + `that stands, and why the wait exists.`);
+    }
+    card("relbanner");
+    card("resultscard");
+    revealed.results = true;
+    suggestStage("common");
+    postSuggestions();
+    busy = false;
+  }, 620);
+}
+
+function revealWhoRead(){
+  if (busy) return;
+  busy = true;
+  bubble("msg me", "Who read my scan?");
+  const typing = bubble("typing", "<i></i><i></i><i></i>");
+  setTimeout(() => {
+    typing.remove();
+    say(`${RELEASE.by}, ${RELEASE.role.toLowerCase()}. Nothing I say about your scan reaches you `
+      + `until they've reviewed, revised and released it — that's what makes this their words `
+      + `rather than a machine's opinion. I'll show you their release note with the results.`);
+    postSuggestions();
+    busy = false;
+  }, 620);
+}
+
+$$("[data-reveal]").forEach(b => b.onclick = () =>
+  b.dataset.reveal === "results" ? revealResults() : revealWhoRead());
 
 function seedThread(){
   $("#thread").innerHTML = "";
   const v = VOICE[persona], g = releaseGate();
+  revealed.results = false;
+  suggestStage("open");
   card("lede");
-  say(`Hi Jordan — I'm ${v.name}, your navigator. Your whole-body MRI from 12 March has been read.`);
-  card("relbanner");
-  if (g.released){
-    say(`${RELEASE.by} reviewed every word of this before it reached you. Here's what they found, `
-      + `in the order <em>they</em> said it mattered — tap any of them and I'll explain it properly.`);
-    card("resultscard");
-  } else {
-    say(`I can't show you what's in it yet — it's with ${RELEASE.by} for review. Here's where that stands.`);
-    card("resultscard");
-    say(`I'll tell you the moment it's released. If anything feels urgent before then, say so and `
-      + `I'll put you straight through to a person.`);
-  }
+  say(`Hi Jordan — I'm ${v.name}, your navigator. Your whole-body MRI from 12 March has been read`
+    + (g.released ? `, and your radiologist has released the results whenever you're ready.`
+                  : ` and is with your radiologist for review right now.`)
+    + ` Take this at whatever pace you want — I'm not going anywhere.`);
   postSuggestions();
   // the seeded turns each scrolled themselves into view — start the visitor at
   // the top of the conversation, where the navigator opened it
@@ -1451,7 +1532,7 @@ function setRelease(state){
   }
   ingestDone = false;                 // the flow graph re-runs ingest against the new gate
   renderResults();
-  if ($("#thread") && $("#thread").children.length){
+  if ($("#thread") && $("#thread").children.length && revealed.results){
     say(state === "released"
       ? `${RELEASE.by} has just released your results — here they are.`
       : `Your results have been pulled back for review by ${RELEASE.by}. I've taken down what I'd `
@@ -1618,7 +1699,9 @@ function setTrace(label){
 const chipHtml = a => `<button class="chip ${a.kind === "edge" ? "edge" : ""}" data-a="${a.id}">${a.chip}</button>`;
 $("#chipsCommon").innerHTML = ANSWERS.filter(a => a.kind === "common").map(chipHtml).join("");
 $("#chipsEdge").innerHTML  = ANSWERS.filter(a => a.kind === "edge").map(chipHtml).join("");
-$$(".chip").forEach(b => b.onclick = () => {
+// only the answer chips route into send() — the opening chips are reveals, and
+// they carry the same .chip styling deliberately
+$$(".chip[data-a]").forEach(b => b.onclick = () => {
   const a = ANSWERS.find(x => x.id === b.dataset.a);
   send(a.chip, a);
 });
@@ -1703,6 +1786,9 @@ function send(text, forced){
       bubble("msg nav", `<span class="navname">${VOICE[persona].name}</span>${FALLBACK[persona]}`);
       peek("", "See what just happened inside");
     }
+    // a question has been answered, so the guardrail questions are now worth
+    // offering — they are the demo's argument, not the patient's first need
+    if (chatStage !== "open") suggestStage("all");
     postSuggestions();               // the quick replies always ride at the live end
     busy = false;
   }, 620);
