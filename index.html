@@ -520,10 +520,21 @@
   .zr{stroke:#1A2A24;stroke-width:1;stroke-dasharray:3 5}
 
   /* controls + log */
-  .sysctl{padding:13px 14px;border-top:1px solid var(--sys-line);display:flex;gap:7px;flex-wrap:wrap}
+  .sysctl{padding:13px 14px;border-top:1px solid var(--sys-line)}
   .sysctl .lbl{
-    width:100%;font-family:var(--mono);font-size:9.4px;letter-spacing:.11em;
-    text-transform:uppercase;color:var(--sys-mut);margin-bottom:1px;
+    display:block;font-family:var(--mono);font-size:9.4px;letter-spacing:.11em;
+    text-transform:uppercase;color:var(--sys-mut);margin-bottom:7px;
+  }
+  .rail{display:flex;gap:7px;flex-wrap:wrap}
+  /* On a phone these buttons are long enough that each claims its own line, and
+     three stacked groups push the diagram they drive right off the screen. One
+     horizontal rail per group instead — the deck stays ~190px, so the graph is
+     still visible under the button you just pressed. */
+  @media(max-width:560px){
+    .sysctl{padding-right:0}
+    .rail{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;padding:1px 14px 2px 0}
+    .rail::-webkit-scrollbar{display:none}
+    .rail .sbtn{flex:none;white-space:nowrap}
   }
   .sbtn{
     font-family:var(--mono);font-size:11.2px;padding:8px 11px;border-radius:8px;text-align:left;
@@ -703,6 +714,33 @@
           <span class="st" id="fstat">idle</span>
         </div>
 
+        <!-- the deck sits ABOVE the diagram: every button here animates the graph
+             below it, and with the controls underneath a 400px-tall SVG you had to
+             scroll down to click and back up to watch. -->
+        <div class="sysctl">
+          <span class="lbl">Send a message through the graph</span>
+          <div class="rail">
+            <button class="sbtn" data-run="normal">▶ A normal question</button>
+            <button class="sbtn red" data-run="meds">▶ “Should I stop taking my blood pressure medication?”</button>
+            <button class="sbtn red" data-run="chestpain">▶ “Crushing chest pain and can't breathe”</button>
+          </div>
+        </div>
+        <div class="sysctl">
+          <span class="lbl">Prove the guardrails are real</span>
+          <div class="rail">
+            <button class="sbtn" id="fBoth">◧ Both personas from one shared object</button>
+            <button class="sbtn amb" id="fInject" aria-pressed="false">⚠ Force the model to invent a claim</button>
+            <button class="sbtn" id="fReplay">↻ Replay last message</button>
+          </div>
+        </div>
+        <div class="sysctl">
+          <span class="lbl">Clinician gate &amp; source validator</span>
+          <div class="rail">
+            <button class="sbtn amb" id="fHold" aria-pressed="false">⏸ Hold clinician release</button>
+            <button class="sbtn amb" id="fBreakSrc" aria-pressed="false">⚠ Break a cited source</button>
+          </div>
+        </div>
+
         <div class="gwrap">
         <!-- ponytail: this is hand-authored inline SVG with CSS class toggles, not React Flow or
              any graph library. It is a fixed presentation diagram — twelve nodes whose geometry
@@ -843,24 +881,6 @@
         </svg>
         </div>
         <p class="scrollhint">↔ scroll the diagram sideways</p>
-
-        <div class="sysctl">
-          <span class="lbl">Send a message through the graph</span>
-          <button class="sbtn" data-run="normal">▶ A normal question</button>
-          <button class="sbtn red" data-run="meds">▶ “Should I stop taking my blood pressure medication?”</button>
-          <button class="sbtn red" data-run="chestpain">▶ “Crushing chest pain and can't breathe”</button>
-        </div>
-        <div class="sysctl">
-          <span class="lbl">Prove the guardrails are real</span>
-          <button class="sbtn" id="fBoth">◧ Both personas from one shared object</button>
-          <button class="sbtn amb" id="fInject" aria-pressed="false">⚠ Force the model to invent a claim</button>
-          <button class="sbtn" id="fReplay">↻ Replay last message</button>
-        </div>
-        <div class="sysctl">
-          <span class="lbl">Clinician gate &amp; source validator</span>
-          <button class="sbtn amb" id="fHold" aria-pressed="false">⏸ Hold clinician release</button>
-          <button class="sbtn amb" id="fBreakSrc" aria-pressed="false">⚠ Break a cited source</button>
-        </div>
 
         <div class="syslog" id="fLog"></div>
       </div>
