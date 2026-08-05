@@ -330,12 +330,15 @@
   .flipbtn[data-other="eva"]::before{background-image:var(--face-eva)}
   .flipbtn[data-other="evan"]::before{background-image:var(--face-evan)}
   .flipbtn:hover{color:var(--ink)}
-  .flip{margin-top:12px;border:1px solid var(--line);border-radius:12px;background:var(--paper);
-    padding:13px 14px;animation:up .2s cubic-bezier(.2,.8,.25,1)}
+  /* .msg is pre-wrap, so this panel must NOT be — otherwise the template's
+     own indentation renders as gaps. pre-wrap goes back on .fbody only,
+     which is the one part that carries real paragraph breaks. */
+  .flip{white-space:normal;margin-top:12px;border:1px solid var(--line);border-radius:12px;
+    background:var(--paper);padding:13px 14px;animation:up .2s cubic-bezier(.2,.8,.25,1)}
   .flip .fhead{display:flex;align-items:center;gap:8px;margin-bottom:9px}
   .flip .fhead .av{width:26px;height:26px;border-radius:50%;flex:none}
   .flip .fhead b{font-size:12.5px;letter-spacing:.02em}
-  .flip .fbody{font-size:14.5px;line-height:1.62;color:var(--ink-2)}
+  .flip .fbody{white-space:pre-wrap;font-size:14.5px;line-height:1.62;color:var(--ink-2)}
   .flip .fbody p{margin-bottom:9px}
   .flip .fbody p:last-child{margin-bottom:0}
   .flip .fbody mark.f{background:var(--accent-soft);border-radius:3px;padding:1px 3px;
@@ -1457,7 +1460,7 @@ const av = (p, extra="") => `<div class="av ${VOICE[p].cls}" ${extra}>${VOICE[p]
    check that both carry identical marked facts.
    ponytail: one function, called wherever a dual-voice bubble is built. No
    registry, no state — the bubble remembers its own answer id in a dataset. */
-function attachFlip(box, texts){
+function attachFlip(box, texts, note){
   const other = persona === "eva" ? "evan" : "eva";
   const btn = document.createElement("button");
   btn.className = "flipbtn";
@@ -1469,12 +1472,12 @@ function attachFlip(box, texts){
     const facts = [...box.querySelectorAll("mark.f")].map(m => m.textContent.trim());
     const panel = document.createElement("div");
     panel.className = "flip";
-    panel.innerHTML = `
-      <div class="fhead">${av(other)}<b>${VOICE[other].name} · ${VOICE[other].tone}</b></div>
-      <div class="fbody">${texts[other]}</div>
-      <p class="fnote">Same clinical facts, different voice. ${facts.length
+    panel.innerHTML =
+      `<div class="fhead">${av(other)}<b>${VOICE[other].name} · ${VOICE[other].tone}</b></div>` +
+      `<div class="fbody">${texts[other]}</div>` +
+      `<p class="fnote">${note || (`Same clinical facts, different voice. ` + (facts.length
         ? `<b>${facts.length}</b> fact${facts.length === 1 ? "" : "s"} (${facts.map(f => `<b>${f}</b>`).join(", ")}) appear in both answers &mdash; checked in the browser, not asserted.`
-        : `Neither answer states a clinical value.`}</p>`;
+        : `Neither answer states a clinical value here.`))}</p>`;
     box.appendChild(panel);
     btn.textContent = `Hide ${VOICE[other].name}'s version`;
     panel.scrollIntoView({behavior:"smooth", block:"nearest"});
@@ -1780,6 +1783,17 @@ function renderDetail(id){
       ${citeHtml(f.stated.src)}
     </details>
   `, DETAIL_STEPS);
+
+  /* The same parity affordance in the results flow. Here the honest claim is
+     sharper than in chat: only the navigator's opening line is written per
+     persona — the report wording, what it is and what it does not mean are one
+     shared object rendered once, so they cannot differ. */
+  attachFlip($$("#thread .explainer").pop(),
+    { eva: VOICE.eva.intro[f.level], evan: VOICE.evan.intro[f.level] },
+    `Only this opening line is written per persona. Everything else in this finding &mdash; `
+    + `the report's own wording, what it is, what it does <em>not</em> mean, what happens next &mdash; `
+    + `is <b>one shared clinical object rendered once</b>, so it is the same in both voices by `
+    + `construction rather than by review.`);
 }
 
 /* one turn of a finding: the answer, then whatever is still worth asking.
