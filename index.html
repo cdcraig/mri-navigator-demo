@@ -556,8 +556,60 @@
   .syslog .l.m .tx{color:var(--sys-mut)}
   @media(max-width:520px){ .syslog .l{grid-template-columns:50px 1fr;gap:6px} .syslog .l .nd{grid-column:1/-1} }
 </style>
+<!-- ============ ACCESS GATE ============
+     The demo is 100% synthetic — there is no PHI here and nothing to leak, so
+     this is a "don't get found by a crawler or a forwarded link" gate, not a
+     security boundary. The token rides in the URL printed in the proposal, so
+     a reader who has the proposal never sees this screen.
+     ponytail: sessionStorage, no cookie, no backend. Ceiling: shared token, no
+     revocation — if the demo ever shows real data this must become a real login. -->
+<style>
+  html[data-locked] body > *:not(#evhgate) { display: none !important; }
+  #evhgate { position: fixed; inset: 0; z-index: 999; display: none; place-items: center;
+    background: #131E1A; color: #F1EFEA; padding: 24px; text-align: center;
+    font-family: ui-sans-serif, system-ui, -apple-system, sans-serif; }
+  html[data-locked] #evhgate { display: grid; }
+  #evhgate .b { width: 100%; max-width: 360px; }
+  #evhgate h1 { font-size: 22px; font-weight: 650; margin: 0 0 8px; letter-spacing: -0.02em; }
+  #evhgate p { font-size: 14px; line-height: 1.5; color: #9DB0A8; margin: 0 0 20px; }
+  #evhgate form { display: flex; gap: 8px; }
+  #evhgate input { flex: 1; min-width: 0; font: inherit; font-size: 15px; color: #F1EFEA;
+    background: #1B2A25; border: 1px solid #2C4038; border-radius: 999px; padding: 12px 18px; }
+  #evhgate input:focus { outline: none; border-color: #43D8B4; }
+  #evhgate button { font: inherit; font-size: 14px; font-weight: 650; color: #0E1613;
+    background: #43D8B4; border: 0; border-radius: 999px; padding: 12px 20px; cursor: pointer; }
+</style>
+<script>
+(function(){
+  var TOKEN = "evh-84638573ae";
+  var q = new URLSearchParams(location.search).get("k");
+  // file:// is the local working copy and the automated checks — never gated
+  var ok = location.protocol === "file:" || q === TOKEN;
+  try { ok = ok || sessionStorage.getItem("evh_demo_gate") === TOKEN; } catch(e){}
+  if (ok) { try { sessionStorage.setItem("evh_demo_gate", TOKEN); } catch(e){} return; }
+  document.documentElement.setAttribute("data-locked", "");
+  addEventListener("DOMContentLoaded", function(){
+    document.getElementById("evhgform").addEventListener("submit", function(e){
+      e.preventDefault();
+      var v = document.getElementById("evhgk").value.trim();
+      if (v !== TOKEN) { document.getElementById("evhgk").select(); return; }
+      try { sessionStorage.setItem("evh_demo_gate", TOKEN); } catch(e){}
+      document.documentElement.removeAttribute("data-locked");
+    });
+  });
+})();
+</script>
 </head>
 <body>
+<div id="evhgate"><div class="b">
+  <h1>Private demo</h1>
+  <p>This preview is shared under NDA. Open it from the link in the proposal, or paste the access code below.</p>
+  <form id="evhgform" autocomplete="off">
+    <input id="evhgk" placeholder="Access code" aria-label="Access code" />
+    <button type="submit">Open</button>
+  </form>
+</div></div>
+
 
 <div id="demobar">
   <i class="dot"></i>
